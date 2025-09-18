@@ -25,7 +25,7 @@
     .filters select option { color: black; }
     .main-container { padding: 25px; max-width: 1800px; margin: auto; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 25px; }
-    .kpi-card { display: flex; align-items: center; gap: 20px; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); transition: transform 0.3s, box-shadow 0.3s; }
+    .kpi-card { display: flex; align-items: center; gap: 20px; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
     .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
     .kpi-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .kpi-icon svg { width: 24px; height: 24px; }
@@ -36,15 +36,15 @@
     #kpiWrongNo .kpi-icon { background: #fff4e6; color: var(--accent-orange); }
     #kpiNotPicked .kpi-icon { background: #fde8e8; color: var(--accent-red); }
     .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-    @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1000px) { .dashboard-grid { grid-template-columns: 1fr; } }
     .chart-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); }
     .chart-card h3 { margin-top: 0; font-size: 18px; font-weight: 600; color: var(--header-bg); border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-    .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border-radius: 12px; width: 80%; max-width: 800px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); }
+    .modal-content { background-color: #fefefe; margin: 8% auto; padding: 20px; border-radius: 12px; width: 90%; max-width: 900px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); }
     .modal-header { padding-bottom: 10px; border-bottom: 1px solid #ddd; }
     .modal-header h2 { margin: 0; color: var(--header-bg); }
     .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-    #customerListTable { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    #customerListTable { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
     #customerListTable th, #customerListTable td { border: 1px solid #ddd; padding: 10px; text-align: left; }
     #customerListTable th { background-color: #f2f2f2; }
 </style>
@@ -66,22 +66,26 @@
     </div>
 </header>
 <div class="main-container">
-    <!-- ... Rest of the HTML is unchanged ... -->
     <div class="kpi-grid">
-        <div class="kpi-card" id="kpiCalls"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58z"/></svg></div><div class="kpi-content"><div class="value" id="valTotalCalls">0</div><div class="label">एकूण कॉल्स</div></div></div>
-        <div class="kpi-card" id="kpiPtp"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></div><div class="kpi-content"><div class="value" id="valPtp">0</div><div class="label">पेमेंटची तारीख निश्चित</div></div></div>
-        <div class="kpi-card" id="kpiWrongNo"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.28 1.465l-2.132 2.132a.5.5 0 0 0-.157.278l-.205.615a.5.5 0 0 0 .58.58l.615-.205a.5.5 0 0 0 .278-.157l2.132-2.132a.5.5 0 0 0 .157-.278l.205-.615a.5.5 0 0 0-.58-.58l-.615.205a.5.5 0 0 0-.278.157L5.383 6.94a.5.5 0 0 1-.707 0L3.586 5.854a.5.5 0 0 1 0-.707l2.132-2.132a.5.5 0 0 0-.157-.278L.205 1.375a.5.5 0 0 0-.58.58l.205.615a.5.5 0 0 0 .157.278l2.132 2.132a.5.5 0 0 0 .707 0l1.086-1.086a.5.5 0 0 0 0-.707L1.885.511zM15.115 14.489a1.745 1.745 0 0 1-2.61-.163L9.71 11.02c-.329-.423-.445-.974-.28-1.465l2.132-2.132a.5.5 0 0 0 .157-.278l.205-.615a.5.5 0 0 0-.58-.58l-.615.205a.5.5 0 0 0-.278.157l-2.132 2.132a.5.5 0 0 0-.157.278l-.205.615a.5.5 0 0 0 .58.58l.615-.205a.5.5 0 0 0 .278-.157l2.132-2.132a.5.5 0 0 1 .707 0l1.086 1.086a.5.5 0 0 1 0 .707l-2.132 2.132a.5.5 0 0 0 .157.278l-.205.615a.5.5 0 0 0 .58.58l.615-.205a.5.5 0 0 0 .278-.157L15.489 12.11a1.745 1.745 0 0 1-.163 2.61z"/></svg></div><div class="kpi-content"><div class="value" id="valWrongNo">0</div><div class="label">चुकीचे मोबाईल नंबर</div></div></div>
-        <div class="kpi-card" id="kpiNotPicked"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg></div><div class="kpi-content"><div class="value" id="valNotPicked">0</div><div class="label">कॉल घेतला नाही</div></div></div>
+        <div class="kpi-card" id="kpiCalls" onclick="showKpiDetails('total')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58z"/></svg></div><div class="kpi-content"><div class="value" id="valTotalCalls">0</div><div class="label">एकूण कॉल्स</div></div></div>
+        <div class="kpi-card" id="kpiPtp" onclick="showKpiDetails('ptp')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></div><div class="kpi-content"><div class="value" id="valPtp">0</div><div class="label">पेमेंटची तारीख निश्चित</div></div></div>
+        <div class="kpi-card" id="kpiWrongNo" onclick="showKpiDetails('wrongNo')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11.95.706a.5.5 0 0 1 .547.098l.53.53a.5.5 0 0 1 0 .708L8.835 6.22a.5.5 0 0 1-.707 0l-.53-.53a.5.5 0 0 1 0-.707l4.723-4.184a.5.5 0 0 1 .547-.098zm-2.43 2.585a.5.5 0 0 0-.612.334L8.25 6.342a.5.5 0 0 0 .612.334l.278-.64a.5.5 0 0 0-.333-.612l-.64-.278zm2.59.085a.5.5 0 0 0-.293.425l-.133.728a.5.5 0 0 0 .425.293l.728.133a.5.5 0 0 0 .293-.425l.133-.728a.5.5 0 0 0-.425-.293l-.728-.133zM3.363 7.043a.5.5 0 0 1-.547.098L.53 3.422a.5.5 0 0 1 0-.707L4.723.43a.5.5 0 0 1 .547.098l2.286 3.738a.5.5 0 0 1 0 .707L3.363 7.043zm1.187-1.187a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707zm-.707-1.414a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707z"/></svg></div><div class="kpi-content"><div class="value" id="valWrongNo">0</div><div class="label">चुकीचे मोबाईल नंबर</div></div></div>
+        <div class="kpi-card" id="kpiNotPicked" onclick="showKpiDetails('notPicked')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg></div><div class="kpi-content"><div class="value" id="valNotPicked">0</div><div class="label">कॉल घेतला नाही</div></div></div>
     </div>
     <div class="dashboard-grid">
         <div class="chart-card"><h3>📊 आजच्या कॉलचे प्रतिसाद वर्गीकरण</h3><div id="statusPieChart" style="width: 100%; height: 400px;"></div></div>
-        <div class="chart-card"><h3>📈 कॉलरनुसार कामगिरी</h3><div id="callerBarChart" style="width: 100%; height: 400px;"></div></div>
+        <div class="chart-card"><h3>📈 कॉलरनुसार प्रतिसादांचे वर्गीकरण</h3><div id="callerPerformanceChart" style="width: 100%; height: 400px;"></div></div>
     </div>
 </div>
 <div id="customerModal" class="modal">
     <div class="modal-content">
         <div class="modal-header"><span class="close" onclick="closeModal()">&times;</span><h2 id="modalTitle">ग्राहकांची यादी</h2></div>
-        <div style="max-height: 400px; overflow-y: auto;"><table id="customerListTable"><thead><tr><th>लोन नंबर</th><th>ग्राहक</th><th>तपशील</th></tr></thead><tbody id="customerListBody"></tbody></table></div>
+        <div style="max-height: 450px; overflow-y: auto;">
+            <table id="customerListTable">
+                <thead><tr><th>लोन नंबर</th><th>ग्राहक</th><th>मोबाईल नंबर</th><th>तपशील</th></tr></thead>
+                <tbody id="customerListBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -89,11 +93,11 @@
     const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ"; // <<<<<<<<<<<<< तुमची API Key येथे टाका
     const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8"; // <<<<<< तुमचा Spreadsheet ID येथे टाका
     
-    // तुमच्या दोन्ही शीट्सची नावे येथे टाका
     const LOG_SHEET_NAME = "CallLogs";
     const MASTER_DATA_SHEET_NAME = "MasterData";
 
     let allCallData = [];
+    let dailyFilteredData = [];
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().slice(0, 10);
@@ -106,59 +110,63 @@
 
     async function fetchData() {
         try {
-            // एकाच वेळी दोन्ही शीट्समधून डेटा मागवा
-            const ranges = [`${LOG_SHEET_NAME}!A:G`, `${MASTER_DATA_SHEET_NAME}!A:I`]; // आवश्यक कॉलम्सनुसार रेंज बदला
+            const ranges = [`${LOG_SHEET_NAME}!A:G`, `${MASTER_DATA_SHEET_NAME}!A:I`];
             const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchGet?ranges=${ranges.join('&ranges=')}&key=${API_KEY}`);
+            if (!response.ok) throw new Error(`Google Sheets API error: ${response.statusText}`);
             const data = await response.json();
 
-            // 1. CallLogs डेटा प्रोसेस करा
             const callLogRows = data.valueRanges[0].values || [];
-            if (callLogRows.length < 2) {
+            const masterDataRows = data.valueRanges[1].values || [];
+            
+            if (callLogRows.length < 2 || masterDataRows.length < 2) {
                 allCallData = [];
-            } else {
-                const callLogHeaders = callLogRows.shift();
-                const callLogData = callLogRows.map(row => ({
-                    date: row[1], caller: row[2], loanNo: row[3],
-                    customerName: row[4], status: row[5], details: row[6]
-                }));
-
-                // 2. MasterData मधून युनिटचा मॅप तयार करा
-                const masterDataRows = data.valueRanges[1].values || [];
-                const masterHeaders = masterDataRows.shift();
-                const loanNoIndex = masterHeaders.indexOf("लोन नंबर");
-                const unitIndex = masterHeaders.indexOf("युनिट नांव");
-                
-                const unitLookup = new Map();
-                const uniqueUnits = new Set();
-                masterDataRows.forEach(row => {
-                    const loanNo = row[loanNoIndex];
-                    const unit = row[unitIndex];
-                    if (loanNo && unit) {
-                        unitLookup.set(loanNo, unit);
-                        uniqueUnits.add(unit);
-                    }
-                });
-                
-                populateUnitFilter(uniqueUnits);
-
-                // 3. दोन्ही डेटा एकत्र करा
-                allCallData = callLogData.map(call => ({
-                    ...call,
-                    unit: unitLookup.get(call.loanNo) || 'अज्ञात' // जर युनिट सापडले नाही तर 'अज्ञात' दाखवा
-                }));
+                updateDashboard();
+                return;
             }
+
+            // 1. MasterData मधून लोन नंबरनुसार तपशील (युनिट, मोबाईल) मिळवा
+            const masterHeaders = masterDataRows.shift();
+            const loanNoIndex = masterHeaders.indexOf("लोन नंबर");
+            const unitIndex = masterHeaders.indexOf("युनिट नांव");
+            const mobileIndex = masterHeaders.indexOf("मोबाईल नंबर"); // मोबाईल नंबर कॉलमचे नाव
+
+            const loanDetailsLookup = new Map();
+            const uniqueUnits = new Set();
+            masterDataRows.forEach(row => {
+                const loanNo = row[loanNoIndex];
+                const unit = row[unitIndex];
+                const mobileNo = row[mobileIndex];
+                if (loanNo) {
+                    loanDetailsLookup.set(loanNo, { unit: unit || 'अज्ञात', mobile: mobileNo || '-' });
+                    if(unit) uniqueUnits.add(unit);
+                }
+            });
+            populateUnitFilter(uniqueUnits);
+
+            // 2. CallLogs डेटा प्रोसेस करा आणि MasterData सह एकत्र करा
+            const callLogHeaders = callLogRows.shift();
+            allCallData = callLogRows.map(row => {
+                const loanNo = row[3];
+                const details = loanDetailsLookup.get(loanNo) || { unit: 'अज्ञात', mobile: '-' };
+                return {
+                    date: row[1], caller: row[2], loanNo: loanNo,
+                    customerName: row[4], status: row[5], details: row[6],
+                    unit: details.unit,
+                    mobileNo: details.mobile
+                };
+            });
+            
             updateDashboard();
         } catch (error) {
             console.error("Error fetching data:", error);
-            alert("डेटा लोड करण्यात अयशस्वी. तुमची API Key आणि Sheet ID तपासा.");
+            alert("डेटा लोड करण्यात अयशस्वी. तुमची API Key, Sheet ID आणि कॉलमची नावे तपासा.");
         }
     }
 
     function populateUnitFilter(units) {
         const unitFilter = document.getElementById('unitFilter');
-        // Clear old options except the first one
         unitFilter.innerHTML = '<option value="All">सर्व युनिट्स</option>';
-        units.forEach(unit => {
+        Array.from(units).sort().forEach(unit => {
             const option = document.createElement('option');
             option.value = unit;
             option.textContent = unit;
@@ -170,32 +178,135 @@
         const selectedDate = document.getElementById('dashboardDate').value;
         const selectedUnit = document.getElementById('unitFilter').value;
         
-        const filteredData = allCallData.filter(row => {
+        dailyFilteredData = allCallData.filter(row => {
             const dateMatch = row.date === selectedDate;
             const unitMatch = (selectedUnit === 'All' || row.unit === selectedUnit);
             return dateMatch && unitMatch;
         });
         
-        // Calculate KPIs based on filtered data
-        const totalCalls = filteredData.length;
-        const ptpCount = filteredData.filter(r => r.status === 'पेमेंटची तारीख निश्चित').length;
-        const wrongNoCount = filteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर').length;
-        const notPickedCount = filteredData.filter(r => r.status === 'कॉल घेतला नाही').length;
+        // Calculate KPIs
+        const totalCalls = dailyFilteredData.length;
+        const ptpCount = dailyFilteredData.filter(r => r.status === 'पेमेंटची तारीख निश्चित').length;
+        const wrongNoCount = dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर').length;
+        const notPickedCount = dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही').length;
 
         document.getElementById('valTotalCalls').innerText = totalCalls;
         document.getElementById('valPtp').innerText = ptpCount;
         document.getElementById('valWrongNo').innerText = wrongNoCount;
         document.getElementById('valNotPicked').innerText = notPickedCount;
 
-        drawStatusPieChart(filteredData);
-        drawCallerBarChart(filteredData);
+        drawStatusPieChart(dailyFilteredData);
+        drawCallerPerformanceChart(dailyFilteredData);
     }
     
-    // The rest of the JavaScript functions (drawStatusPieChart, drawCallerBarChart, showCustomerList, closeModal) are unchanged.
-    function drawStatusPieChart(data) { const statusCounts = data.reduce((acc, row) => { acc[row.status] = (acc[row.status] || 0) + 1; return acc; }, {}); const chartData = [['स्टेटस', 'संख्या'], ...Object.entries(statusCounts)]; const options = { title: '', pieHole: 0.4, fontName: 'Noto Sans Devanagari', chartArea:{left:10,top:20,width:'90%',height:'80%'} }; const chart = new google.visualization.PieChart(document.getElementById('statusPieChart')); google.visualization.events.addListener(chart, 'select', () => { const selection = chart.getSelection(); if (selection.length > 0) { const selectedStatus = chartData[selection[0].row + 1][0]; showCustomerList(data, selectedStatus); } }); chart.draw(google.visualization.arrayToDataTable(chartData.length > 1 ? chartData : [['Data', 0]]), options); }
-    function drawCallerBarChart(data) { const callerCounts = data.reduce((acc, row) => { acc[row.caller] = (acc[row.caller] || 0) + 1; return acc; }, {}); const chartData = [['कॉलर', 'कॉल्स'], ...Object.entries(callerCounts)]; const options = { title: '', fontName: 'Noto Sans Devanagari', legend: { position: "none" }, chartArea: {width: '75%', height: '80%'}, hAxis: { title: 'कॉल्सची संख्या', titleTextStyle: {italic: false} }, vAxis: {textStyle: {fontSize: 12}} }; const chart = new google.visualization.BarChart(document.getElementById('callerBarChart')); chart.draw(google.visualization.arrayToDataTable(chartData.length > 1 ? chartData : [['Data', 0]]), options); }
-    function showCustomerList(data, status) { const filteredCustomers = data.filter(row => row.status === status); const modal = document.getElementById('customerModal'); document.getElementById('modalTitle').innerText = `'${status}' असलेले ग्राहक`; const tableBody = document.getElementById('customerListBody'); tableBody.innerHTML = filteredCustomers.map(c => `<tr><td>${c.loanNo}</td><td>${c.customerName}</td><td>${c.details || '-'}</td></tr>`).join(''); modal.style.display = 'block'; }
-    function closeModal() { document.getElementById('customerModal').style.display = 'none'; }
+    function drawStatusPieChart(data) {
+        const statusCounts = data.reduce((acc, row) => {
+            acc[row.status] = (acc[row.status] || 0) + 1;
+            return acc;
+        }, {});
+        const chartData = [['स्टेटस', 'संख्या'], ...Object.entries(statusCounts)];
+        const options = { pieHole: 0.4, fontName: 'Noto Sans Devanagari', legend: { position: 'bottom' }, chartArea:{left:15,top:20,width:'90%',height:'75%'} };
+        const chart = new google.visualization.PieChart(document.getElementById('statusPieChart'));
+        
+        google.visualization.events.addListener(chart, 'select', () => {
+            const selection = chart.getSelection();
+            if (selection.length > 0) {
+                const selectedStatus = chartData[selection[0].row + 1][0];
+                const customers = data.filter(row => row.status === selectedStatus);
+                displayCustomerModal(`'${selectedStatus}' असलेले ग्राहक`, customers);
+            }
+        });
+
+        chart.draw(google.visualization.arrayToDataTable(chartData.length > 1 ? chartData : [['Data', 0]]), options);
+    }
+    
+    function drawCallerPerformanceChart(data) {
+        if (data.length === 0) {
+            document.getElementById('callerPerformanceChart').innerHTML = '<p style="text-align:center;color:grey;margin-top:50px;">या तारखेसाठी कोणताही डेटा उपलब्ध नाही.</p>';
+            return;
+        }
+
+        const callerStatus = {};
+        const allStatuses = new Set();
+        data.forEach(row => {
+            if (!callerStatus[row.caller]) {
+                callerStatus[row.caller] = {};
+            }
+            callerStatus[row.caller][row.status] = (callerStatus[row.caller][row.status] || 0) + 1;
+            allStatuses.add(row.status);
+        });
+
+        const sortedStatuses = Array.from(allStatuses).sort();
+        const chartHeader = ['कॉलर', ...sortedStatuses];
+        const chartData = [chartHeader];
+
+        for (const caller in callerStatus) {
+            const row = [caller];
+            sortedStatuses.forEach(status => {
+                row.push(callerStatus[caller][status] || 0);
+            });
+            chartData.push(row);
+        }
+
+        const options = {
+            isStacked: true, fontName: 'Noto Sans Devanagari', legend: { position: 'top', maxLines: 3 },
+            chartArea: {width: '70%', height: '75%'}, hAxis: { title: 'एकूण कॉल्स', minValue: 0 }, vAxis: { textStyle: {fontSize: 12} },
+            bar: { groupWidth: '75%' }
+        };
+        
+        const chart = new google.visualization.BarChart(document.getElementById('callerPerformanceChart'));
+        chart.draw(google.visualization.arrayToDataTable(chartData), options);
+    }
+
+    function showKpiDetails(kpiType) {
+        let dataToShow = [];
+        let title = '';
+
+        switch (kpiType) {
+            case 'total':
+                title = 'एकूण कॉल्स';
+                dataToShow = dailyFilteredData;
+                break;
+            case 'ptp':
+                title = 'पेमेंटची तारीख निश्चित';
+                dataToShow = dailyFilteredData.filter(r => r.status === title);
+                break;
+            case 'wrongNo':
+                title = 'चुकीचे मोबाईल नंबर';
+                dataToShow = dailyFilteredData.filter(r => r.status === title);
+                break;
+            case 'notPicked':
+                title = 'कॉल घेतला नाही';
+                dataToShow = dailyFilteredData.filter(r => r.status === title);
+                break;
+        }
+        
+        displayCustomerModal(`${title} तपशील`, dataToShow);
+    }
+
+    function displayCustomerModal(title, customerData) {
+        const modal = document.getElementById('customerModal');
+        document.getElementById('modalTitle').innerText = `${title} (${customerData.length})`;
+        const tableBody = document.getElementById('customerListBody');
+        
+        if(customerData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कोणतेही रेकॉर्ड उपलब्ध नाही.</td></tr>`;
+        } else {
+            tableBody.innerHTML = customerData.map(c => 
+                `<tr>
+                    <td>${c.loanNo || '-'}</td>
+                    <td>${c.customerName || '-'}</td>
+                    <td>${c.mobileNo || '-'}</td>
+                    <td>${c.details || '-'}</td>
+                </tr>`
+            ).join('');
+        }
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('customerModal').style.display = 'none';
+    }
 </script>
 </body>
 </html>
