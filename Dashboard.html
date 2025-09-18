@@ -10,7 +10,7 @@
     :root {
         --primary-bg: #f0f2f5; --card-bg: #ffffff; --header-bg: #0d47a1; --primary-text: #212529;
         --secondary-text: #6c757d; --accent-blue: #007bff; --accent-green: #28a745;
-        --accent-orange: #fd7e14; --accent-red: #dc3545; --shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+        --accent-orange: #fd7e14; --accent-red: #dc3545; --accent-purple: #6f42c1; --accent-teal: #20c997; --shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
     }
     body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background-color: var(--primary-bg); margin: 0; color: var(--primary-text); }
     .header { background: var(--header-bg); padding: 18px 30px; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 15px;}
@@ -20,9 +20,9 @@
     .filters label { font-size: 14px; font-weight: 500; }
     .filters input[type="date"], .filters select {
         padding: 8px 12px; border-radius: 6px; border: 1px solid #ffffff55;
-        background: #ffffff22; color: white; font-family: inherit;
+        background: #ffffff22; color: white; font-family: inherit; min-width: 150px;
     }
-    .filters select option { color: black; }
+    .filters select option { color: black; background: white; }
     .main-container { padding: 25px; max-width: 1800px; margin: auto; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 25px; }
     .kpi-card { display: flex; align-items: center; gap: 20px; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
@@ -31,10 +31,15 @@
     .kpi-icon svg { width: 24px; height: 24px; }
     .kpi-content .value { font-size: 32px; font-weight: 700; color: var(--primary-text); }
     .kpi-content .label { font-size: 15px; color: var(--secondary-text); }
+
+    /* KPI Icon Colors */
     #kpiCalls .kpi-icon { background: #e6f2ff; color: var(--accent-blue); }
     #kpiPtp .kpi-icon { background: #eaf7ea; color: var(--accent-green); }
+    #kpiPaidToStaff .kpi-icon { background: #e9f9f5; color: var(--accent-teal); }
+    #kpiInterestIssue .kpi-icon { background: #fff0e0; color: #ff8c00; }
     #kpiWrongNo .kpi-icon { background: #fff4e6; color: var(--accent-orange); }
     #kpiNotPicked .kpi-icon { background: #fde8e8; color: var(--accent-red); }
+
     .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
     @media (max-width: 1000px) { .dashboard-grid { grid-template-columns: 1fr; } }
     .chart-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); }
@@ -46,7 +51,7 @@
     .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
     #customerListTable { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
     #customerListTable th, #customerListTable td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-    #customerListTable th { background-color: #f2f2f2; }
+    #customerListTable th { background-color: #f2f2f2; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -63,13 +68,24 @@
                 <option value="All">सर्व युनिट्स</option>
              </select>
         </div>
+        <!-- नवीन कॉलर फिल्टर -->
+        <div class="filter-item">
+             <label for="callerFilter">कॉलर (CA):</label>
+             <select id="callerFilter">
+                <option value="All">सर्व कॉलर</option>
+             </select>
+        </div>
     </div>
 </header>
 <div class="main-container">
     <div class="kpi-grid">
         <div class="kpi-card" id="kpiCalls" onclick="showKpiDetails('total')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58z"/></svg></div><div class="kpi-content"><div class="value" id="valTotalCalls">0</div><div class="label">एकूण कॉल्स</div></div></div>
         <div class="kpi-card" id="kpiPtp" onclick="showKpiDetails('ptp')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></div><div class="kpi-content"><div class="value" id="valPtp">0</div><div class="label">पेमेंटची तारीख निश्चित</div></div></div>
-        <div class="kpi-card" id="kpiWrongNo" onclick="showKpiDetails('wrongNo')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11.95.706a.5.5 0 0 1 .547.098l.53.53a.5.5 0 0 1 0 .708L8.835 6.22a.5.5 0 0 1-.707 0l-.53-.53a.5.5 0 0 1 0-.707l4.723-4.184a.5.5 0 0 1 .547-.098zm-2.43 2.585a.5.5 0 0 0-.612.334L8.25 6.342a.5.5 0 0 0 .612.334l.278-.64a.5.5 0 0 0-.333-.612l-.64-.278zm2.59.085a.5.5 0 0 0-.293.425l-.133.728a.5.5 0 0 0 .425.293l.728.133a.5.5 0 0 0 .293-.425l.133-.728a.5.5 0 0 0-.425-.293l-.728-.133zM3.363 7.043a.5.5 0 0 1-.547.098L.53 3.422a.5.5 0 0 1 0-.707L4.723.43a.5.5 0 0 1 .547.098l2.286 3.738a.5.5 0 0 1 0 .707L3.363 7.043zm1.187-1.187a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707zm-.707-1.414a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707z"/></svg></div><div class="kpi-content"><div class="value" id="valWrongNo">0</div><div class="label">चुकीचे मोबाईल नंबर</div></div></div>
+        <!-- नवीन KPI कार्ड: हप्ता स्टाफकडे भरलेला आहे -->
+        <div class="kpi-card" id="kpiPaidToStaff" onclick="showKpiDetails('paidToStaff')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1zm12-1a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM15 5a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1zM8 8a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z"/></svg></div><div class="kpi-content"><div class="value" id="valPaidToStaff">0</div><div class="label">हप्ता स्टाफकडे भरला</div></div></div>
+        <!-- नवीन KPI कार्ड: व्याजाचा इश्यू -->
+        <div class="kpi-card" id="kpiInterestIssue" onclick="showKpiDetails('interestIssue')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg></div><div class="kpi-content"><div class="value" id="valInterestIssue">0</div><div class="label">व्याजाचा इश्यू</div></div></div>
+        <div class="kpi-card" id="kpiWrongNo" onclick="showKpiDetails('wrongNo')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11.95.706a.5.5 0 0 1 .547.098l.53.53a.5.5 0 0 1 0 .708L8.835 6.22a.5.5 0 0 1-.707 0l-.53-.53a.5.5 0 0 1 0-.707l4.723-4.184a.5.5 0 0 1 .547-.098zm-2.43 2.585a.5.5 0 0 0-.612.334L8.25 6.342a.5.5 0 0 0 .612.334l.278-.64a.5.5 0 0 0-.333-.612l-.64-.278zm2.59.085a.5.5 0 0 0-.293.425l-.133.728a.5.5 0 0 0 .425.293l.728.133a.5.5 0 0 0 .293-.425l.133-.728a.5.5 0 0 0-.425-.293l-.728-.133zM3.363 7.043a.5.5 0 0 1-.547.098L.53 3.422a.5.5 0 0 1 0-.707L4.723.43a.5.5 0 0 1 .547.098l2.286 3.738a.5.5 0 0 1 0 .707L3.363 7.043zm1.187-1.187a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707zm-.707-1.414a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707z"/></svg></div><div class="kpi-content"><div class="value" id="valWrongNo">0</div><div class="label">चुकीचा मोबाईल नंबर</div></div></div>
         <div class="kpi-card" id="kpiNotPicked" onclick="showKpiDetails('notPicked')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg></div><div class="kpi-content"><div class="value" id="valNotPicked">0</div><div class="label">कॉल घेतला नाही</div></div></div>
     </div>
     <div class="dashboard-grid">
@@ -82,7 +98,7 @@
         <div class="modal-header"><span class="close" onclick="closeModal()">&times;</span><h2 id="modalTitle">ग्राहकांची यादी</h2></div>
         <div style="max-height: 450px; overflow-y: auto;">
             <table id="customerListTable">
-                <thead><tr><th>लोन नंबर</th><th>ग्राहक</th><th>मोबाईल नंबर</th><th>तपशील</th></tr></thead>
+                <thead><tr><th>लोन नंबर</th><th>ग्राहक</th><th>मोबाईल नंबर</th><th>स्थिती / तपशील</th></tr></thead>
                 <tbody id="customerListBody"></tbody>
             </table>
         </div>
@@ -102,8 +118,12 @@
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().slice(0, 10);
         document.getElementById('dashboardDate').value = today;
+        
+        // सर्व फिल्टर्ससाठी इव्हेंट लिस्नर जोडा
         document.getElementById('dashboardDate').addEventListener('change', updateDashboard);
         document.getElementById('unitFilter').addEventListener('change', updateDashboard);
+        document.getElementById('callerFilter').addEventListener('change', updateDashboard); // नवीन कॉलर फिल्टरसाठी
+        
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(fetchData);
     });
@@ -124,11 +144,10 @@
                 return;
             }
 
-            // 1. MasterData मधून लोन नंबरनुसार तपशील (युनिट, मोबाईल) मिळवा
             const masterHeaders = masterDataRows.shift();
             const loanNoIndex = masterHeaders.indexOf("लोन नंबर");
             const unitIndex = masterHeaders.indexOf("युनिट नांव");
-            const mobileIndex = masterHeaders.indexOf("मोबाईल नंबर"); // मोबाईल नंबर कॉलमचे नाव
+            const mobileIndex = masterHeaders.indexOf("मोबाईल नंबर");
 
             const loanDetailsLookup = new Map();
             const uniqueUnits = new Set();
@@ -143,18 +162,23 @@
             });
             populateUnitFilter(uniqueUnits);
 
-            // 2. CallLogs डेटा प्रोसेस करा आणि MasterData सह एकत्र करा
             const callLogHeaders = callLogRows.shift();
+            const uniqueCallers = new Set();
             allCallData = callLogRows.map(row => {
                 const loanNo = row[3];
+                const callerName = row[2];
                 const details = loanDetailsLookup.get(loanNo) || { unit: 'अज्ञात', mobile: '-' };
+                
+                if(callerName) uniqueCallers.add(callerName); // कॉलरची नावे मिळवा
+
                 return {
-                    date: row[1], caller: row[2], loanNo: loanNo,
-                    customerName: row[4], status: row[5], details: row[6],
-                    unit: details.unit,
-                    mobileNo: details.mobile
+                    date: row[1], caller: callerName, loanNo: loanNo,
+                    customerName: row[4], status: row[5], rawDetails: row[6], // 'details' चे नाव 'rawDetails' केले
+                    unit: details.unit, mobileNo: details.mobile
                 };
             });
+            
+            populateCallerFilter(uniqueCallers); // कॉलर फिल्टर तयार करा
             
             updateDashboard();
         } catch (error) {
@@ -173,15 +197,29 @@
             unitFilter.appendChild(option);
         });
     }
+    
+    // नवीन फंक्शन: कॉलर फिल्टर तयार करण्यासाठी
+    function populateCallerFilter(callers) {
+        const callerFilter = document.getElementById('callerFilter');
+        callerFilter.innerHTML = '<option value="All">सर्व कॉलर</option>';
+        Array.from(callers).sort().forEach(caller => {
+            const option = document.createElement('option');
+            option.value = caller;
+            option.textContent = caller;
+            callerFilter.appendChild(option);
+        });
+    }
 
     function updateDashboard() {
         const selectedDate = document.getElementById('dashboardDate').value;
         const selectedUnit = document.getElementById('unitFilter').value;
+        const selectedCaller = document.getElementById('callerFilter').value; // कॉलर फिल्टरची व्हॅल्यू
         
         dailyFilteredData = allCallData.filter(row => {
             const dateMatch = row.date === selectedDate;
             const unitMatch = (selectedUnit === 'All' || row.unit === selectedUnit);
-            return dateMatch && unitMatch;
+            const callerMatch = (selectedCaller === 'All' || row.caller === selectedCaller); // कॉलरसाठी फिल्टर अट
+            return dateMatch && unitMatch && callerMatch;
         });
         
         // Calculate KPIs
@@ -189,11 +227,16 @@
         const ptpCount = dailyFilteredData.filter(r => r.status === 'पेमेंटची तारीख निश्चित').length;
         const wrongNoCount = dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर').length;
         const notPickedCount = dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही').length;
+        const paidToStaffCount = dailyFilteredData.filter(r => r.status === 'हप्ता स्टाफकडे भरलेला आहे').length;
+        const interestIssueCount = dailyFilteredData.filter(r => r.status === 'व्याजाचा इश्यू').length;
 
         document.getElementById('valTotalCalls').innerText = totalCalls;
         document.getElementById('valPtp').innerText = ptpCount;
         document.getElementById('valWrongNo').innerText = wrongNoCount;
         document.getElementById('valNotPicked').innerText = notPickedCount;
+        document.getElementById('valPaidToStaff').innerText = paidToStaffCount;
+        document.getElementById('valInterestIssue').innerText = interestIssueCount;
+
 
         drawStatusPieChart(dailyFilteredData);
         drawCallerPerformanceChart(dailyFilteredData);
@@ -264,21 +307,17 @@
 
         switch (kpiType) {
             case 'total':
-                title = 'एकूण कॉल्स';
-                dataToShow = dailyFilteredData;
-                break;
+                title = 'एकूण कॉल्स'; dataToShow = dailyFilteredData; break;
             case 'ptp':
-                title = 'पेमेंटची तारीख निश्चित';
-                dataToShow = dailyFilteredData.filter(r => r.status === title);
-                break;
+                title = 'पेमेंटची तारीख निश्चित'; dataToShow = dailyFilteredData.filter(r => r.status === title); break;
             case 'wrongNo':
-                title = 'चुकीचे मोबाईल नंबर';
-                dataToShow = dailyFilteredData.filter(r => r.status === title);
-                break;
+                title = 'चुकीचा मोबाईल नंबर'; dataToShow = dailyFilteredData.filter(r => r.status === title); break;
             case 'notPicked':
-                title = 'कॉल घेतला नाही';
-                dataToShow = dailyFilteredData.filter(r => r.status === title);
-                break;
+                title = 'कॉल घेतला नाही'; dataToShow = dailyFilteredData.filter(r => r.status === title); break;
+            case 'paidToStaff':
+                title = 'हप्ता स्टाफकडे भरलेला आहे'; dataToShow = dailyFilteredData.filter(r => r.status === title); break;
+            case 'interestIssue':
+                title = 'व्याजाचा इश्यू'; dataToShow = dailyFilteredData.filter(r => r.status === title); break;
         }
         
         displayCustomerModal(`${title} तपशील`, dataToShow);
@@ -292,14 +331,19 @@
         if(customerData.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कोणतेही रेकॉर्ड उपलब्ध नाही.</td></tr>`;
         } else {
-            tableBody.innerHTML = customerData.map(c => 
-                `<tr>
+            tableBody.innerHTML = customerData.map(c => {
+                // ड्रॉपडाऊनमधील निवडलेला पर्याय आणि अतिरिक्त माहिती एकत्र दाखवा
+                let fullDetails = c.status || '';
+                if (c.rawDetails) {
+                    fullDetails += ` (${c.rawDetails})`;
+                }
+                return `<tr>
                     <td>${c.loanNo || '-'}</td>
                     <td>${c.customerName || '-'}</td>
                     <td>${c.mobileNo || '-'}</td>
-                    <td>${c.details || '-'}</td>
+                    <td>${fullDetails || '-'}</td>
                 </tr>`
-            ).join('');
+            }).join('');
         }
         modal.style.display = 'block';
     }
