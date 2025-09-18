@@ -148,4 +148,5 @@
     window.onload = async function() { try { const response = await fetch(SCRIPT_URL); allCustomers = await response.json(); document.getElementById('loader').style.display = 'none'; filterCustomers(); } catch (error) { console.error('Error fetching customer list:', error); document.getElementById('loader').innerText = 'ग्राहक यादी लोड करण्यात अयशस्वी.'; } };
 </script>
 </body>
+
 </html>
