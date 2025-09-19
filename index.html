@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>टेली-कॉलिंग इनपुट स्क्रीन</title>
+    <title>टेली-कॉलिंग इनपुट स्क्रीन (Advanced)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS मध्ये थोडे बदल केले आहेत जेणेकरून अधिक माहिती व्यवस्थित दिसेल */
         :root {
             --primary-color: #0d47a1; --secondary-color: #1565c0; --bg-color: #f4f6f9;
             --card-bg: #ffffff; --text-color: #333; --border-color: #dee2e6;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --success-color: #10b981; --warning-color: #f59e0b;
         }
         body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background-color: var(--bg-color); margin: 0; }
         .header { background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); color: white; padding: 18px 30px; text-align: center; box-shadow: var(--shadow); }
         .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
-        .container { max-width: 1300px; margin: 25px auto; display: grid; grid-template-columns: 4fr 5fr; gap: 25px; padding: 0 20px; }
+        .container { max-width: 1400px; margin: 25px auto; display: grid; grid-template-columns: 5fr 4fr; gap: 25px; padding: 0 20px; }
         .card { background: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow); padding: 30px; }
         h2 { color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); padding-bottom: 12px; margin-top: 0; font-weight: 600; }
         .form-group { margin-bottom: 20px; }
@@ -26,45 +26,62 @@
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none; border-color: var(--secondary-color); box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
         }
-        .range-filter { display: flex; gap: 10px; align-items: center; }
-        .range-filter input { width: 100px; }
-        .filter-btn { background-color: var(--secondary-color); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; margin-left: 10px; }
         .submit-btn { background: linear-gradient(90deg, #10b981, #059669); color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: transform 0.2s; width: 100%; margin-top: 10px; }
         .submit-btn:hover { transform: translateY(-2px); }
-        #customerList { max-height: 480px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
-        .customer-item { padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background-color 0.2s; }
-        .customer-item:last-child { border-bottom: none; }
-        .customer-item:hover { background-color: #e3f2fd; }
-        .customer-item.selected { background-color: #bbdefb; font-weight: 600; }
-        .customer-item .name { font-size: 16px; font-weight: 500; }
-        /* ===== नवीन माहितीसाठी ग्रीड लेआउट ===== */
-        .customer-item .details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px 15px;
-            font-size: 13px;
-            color: #666;
-            margin-top: 8px;
-        }
         .hidden { display: none; }
         #loader { text-align: center; padding: 40px; font-size: 18px; color: var(--primary-color); }
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px; background-color: #28a745; color: white; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1001; transition: opacity 0.5s; opacity: 0; }
         .notification.show { opacity: 1; }
         .notification.error { background-color: #dc3545; }
+
+        .filters-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; align-items: end; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-size: 14px; margin-bottom: 5px; }
+        .filter-group input, .filter-group select { padding: 10px; font-size: 15px; }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; padding-top: 25px; }
+        
+        #customerList { max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+        .customer-item { padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background-color 0.2s; position: relative; }
+        .customer-item.processed { opacity: 0.6; cursor: default; }
+        .customer-item:last-child { border-bottom: none; }
+        .customer-item:not(.processed):hover { background-color: #e3f2fd; }
+        .customer-item.selected { background-color: #bbdefb; }
+        .customer-item .name { font-size: 16px; font-weight: 600; color: #1e3a8a; }
+        .customer-item .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; font-size: 13px; color: #666; margin-top: 8px; }
+        .last-call-info { background-color: #fffbe6; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 10px; font-size: 12px; margin-top: 8px; color: #92400e; }
+        .done-indicator { position: absolute; top: 15px; right: 15px; font-size: 14px; font-weight: 600; color: var(--success-color); }
+
+        .previous-call-details { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--warning-color); }
+        .previous-call-details h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
+        .previous-call-details p { margin: 4px 0; font-size: 15px; }
     </style>
 </head>
 <body>
-    <header class="header"><h1>📞 टेली-कॉलिंग पॅनल</h1></header>
+    <header class="header"><h1>📞 टेली-कॉलिंग पॅनल (Advanced)</h1></header>
     <div class="container">
         <!-- डावी बाजू: ग्राहक निवड -->
         <div class="card">
             <h2>🎯 ग्राहक निवडा</h2>
-            <div class="form-group">
-                <label for="odDaysFrom">ओडी दिवस रेंज निवडा:</label>
-                <div class="range-filter">
-                    <input type="number" id="odDaysFrom" placeholder="पासून (From)">
-                    <input type="number" id="odDaysTo" placeholder="पर्यंत (To)">
-                    <button class="filter-btn" onclick="filterCustomers()">फिल्टर करा</button>
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="searchQuery">नांव / मोबाईल शोधा:</label>
+                    <input type="text" id="searchQuery" placeholder="शोधा...">
+                </div>
+                <div class="filter-group">
+                    <label for="staffFilter">सी. ऐ. निवडा:</label>
+                    <select id="staffFilter"><option value="">सर्व</option></select>
+                </div>
+                <div class="filter-group">
+                    <label for="odDaysFrom">ओडी दिवस (पासून):</label>
+                    <input type="number" id="odDaysFrom" placeholder="उदा. 1">
+                </div>
+                <div class="filter-group">
+                    <label for="odDaysTo">ओडी दिवस (पर्यंत):</label>
+                    <input type="number" id="odDaysTo" placeholder="उदा. 30">
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="followUpFilter">
+                    <label for="followUpFilter">आज फॉलो-अप असणारे</label>
                 </div>
             </div>
             <div id="loader">डेटा लोड होत आहे...</div>
@@ -74,20 +91,23 @@
         <!-- उजवी बाजू: कॉलचा तपशील भरा -->
         <div class="card">
             <h2>📝 कॉलचा तपशील</h2>
+            <div id="previousCallContainer" class="previous-call-details hidden">
+                <h3>मागील कॉलचा तपशील</h3>
+                <p><strong>तारीख:</strong> <span id="prevCallDate"></span></p>
+                <p><strong>प्रतिसाद:</strong> <span id="prevCallStatus"></span></p>
+                <p><strong>अधिक माहिती:</strong> <span id="prevCallDetails"></span></p>
+            </div>
             <form id="callLogForm">
                 <div class="form-group">
                     <label>निवडलेला ग्राहक:</label>
                     <input type="text" id="selectedCustomerName" readonly style="background:#f1f1f1; font-weight: bold;">
                     <input type="hidden" id="selectedLoanNo">
                 </div>
-                <!-- ===== कॉलरच्या नावासाठी टेक्स्ट फील्ड ऐवजी ड्रॉपडाऊन ===== -->
                 <div class="form-group">
                     <label for="callerName">तुमचे नांव:</label>
                     <select id="callerName" required>
                         <option value="">निवडा...</option>
                         <option value="Pratik Kore">Pratik Kore</option>
-                        <!-- भविष्यात आणखी नावे येथे टाका -->
-                        <!-- <option value="दुसरे नाव">दुसरे नाव</option> -->
                     </select>
                 </div>
                 <div class="form-group">
@@ -113,39 +133,170 @@
     <div id="notification" class="notification"></div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHSErrbeMjLV3U5w_L4GxlwrcWvSBDXQ8O8HNRl4Ym0dO4luGD0iP0vHeqUz_skZU/exec"; // <<<<<< इथे तुमची URL टाका
+    // <<<<<< इथे तुमची नवीन Google Apps Script URL टाका >>>>>>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXzgkWrE5JHm-3L53TFvAKXtcraxONp9nl7KAZd4oCJOIlHk7vyNbCDLTUg2bvbiA/exec"; 
     let allCustomers = [];
 
-    // ===== displayCustomers फंक्शनमध्ये नवीन माहिती दाखवण्यासाठी बदल =====
+    window.onload = async function() {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            if(data.error){ throw new Error(data.error); }
+            allCustomers = data;
+            
+            document.getElementById('loader').style.display = 'none';
+            populateStaffFilter();
+            applyFilters();
+        } catch (error) {
+            console.error('Error fetching customer list:', error);
+            document.getElementById('loader').innerText = `ग्राहक यादी लोड करण्यात अयशस्वी: ${error.message}`;
+        }
+        
+        document.getElementById('searchQuery').addEventListener('keyup', applyFilters);
+        document.getElementById('staffFilter').addEventListener('change', applyFilters);
+        document.getElementById('odDaysFrom').addEventListener('input', applyFilters);
+        document.getElementById('odDaysTo').addEventListener('input', applyFilters);
+        document.getElementById('followUpFilter').addEventListener('change', applyFilters);
+    };
+
+    function populateStaffFilter() {
+        const staffFilter = document.getElementById('staffFilter');
+        const staffNames = [...new Set(allCustomers.map(c => c.staffName).filter(Boolean))];
+        staffNames.sort();
+        staffNames.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name; option.textContent = name;
+            staffFilter.appendChild(option);
+        });
+    }
+
+    function applyFilters() {
+        const searchQuery = document.getElementById('searchQuery').value.toLowerCase();
+        const staffName = document.getElementById('staffFilter').value;
+        const fromDays = parseInt(document.getElementById('odDaysFrom').value) || 0;
+        const toDays = parseInt(document.getElementById('odDaysTo').value) || Infinity;
+        const onlyFollowUp = document.getElementById('followUpFilter').checked;
+
+        let filtered = allCustomers;
+        if (searchQuery) { filtered = filtered.filter(c => c.name.toLowerCase().includes(searchQuery) || (c.mobile && c.mobile.includes(searchQuery))); }
+        if (staffName) { filtered = filtered.filter(c => c.staffName === staffName); }
+        filtered = filtered.filter(c => { const days = parseInt(c.odDays); return days >= fromDays && days <= toDays; });
+        if (onlyFollowUp) {
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            filtered = filtered.filter(c => {
+                if (!c.lastPromiseDate) return false;
+                const promiseDate = new Date(c.lastPromiseDate);
+                return promiseDate <= today;
+            });
+        }
+        displayCustomers(filtered);
+    }
+
     function displayCustomers(customers) {
         const listDiv = document.getElementById('customerList');
         if (customers.length === 0) {
-            listDiv.innerHTML = `<div style='text-align:center; padding: 20px; color: #777;'>या रेंजमध्ये ग्राहक नाहीत.</div>`;
+            listDiv.innerHTML = `<div style='text-align:center; padding: 20px; color: #777;'>या फिल्टरमध्ये ग्राहक नाहीत.</div>`;
             return;
         }
         listDiv.innerHTML = customers.map(c => `
-            <div class="customer-item" onclick="selectCustomer(this, '${c.loanNo}', '${c.name}')">
-                <div class="name">${c.name}</div>
+            <div class="customer-item" data-loan-no="${c.loanNo}" onclick='selectCustomer(${JSON.stringify(c)})'>
+                <div class="name">${c.name} <span class="done-indicator hidden">✔ कॉल झाला</span></div>
                 <div class="details-grid">
-                    <span>📍 गांव: ${c.village || 'N/A'}</span>
-                    <span>👨‍💼 सी ऐ: ${c.staffName || 'N/A'}</span>
-                    <span>🏢 युनिट: ${c.unitName || 'N/A'}</span>
-                    <span>📱 मोबाईल: ${c.mobile || 'N/A'}</span>
-                    <span>🗓️ ओडी: ${c.odDays} दिवस</span>
-                    <span>💰 रक्कम: ₹${parseInt(c.odAmount).toLocaleString('en-IN')}</span>
+                    <span><strong>लोन नं:</strong> ${c.loanNo}</span>
+                    <span><strong>सी ऐ:</strong> ${c.staffName || 'N/A'}</span>
+                    <span><strong>गांव:</strong> ${c.village || 'N/A'}</span>
+                    <span><strong>मोबाईल:</strong> ${c.mobile || 'N/A'}</span>
+                    <span><strong>ओडी:</strong> ${c.odDays} दिवस</span>
+                    <span><strong>रक्कम:</strong> ₹${parseInt(c.odAmount).toLocaleString('en-IN')}</span>
                 </div>
+                ${c.lastCallStatus ? `
+                <div class="last-call-info">
+                    <strong>मागील प्रतिसाद:</strong> ${c.lastCallStatus} (${new Date(c.lastCallDate).toLocaleDateString('en-GB')})
+                </div>
+                ` : ''}
             </div>
         `).join('');
     }
 
-    // बाकीचे JavaScript फंक्शन्स जसेच्या तसे राहतील
-    function filterCustomers() { const fromDays = parseInt(document.getElementById('odDaysFrom').value) || 0; const toDays = parseInt(document.getElementById('odDaysTo').value) || Infinity; const filtered = allCustomers.filter(c => { const days = parseInt(c.odDays); return days >= fromDays && days <= toDays; }); displayCustomers(filtered); }
-    function selectCustomer(element, loanNo, name) { document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected')); element.classList.add('selected'); document.getElementById('selectedCustomerName').value = name; document.getElementById('selectedLoanNo').value = loanNo; }
-    function toggleConditionalFields() { const status = document.getElementById('callStatus').value; document.getElementById('paymentDateGroup').classList.toggle('hidden', status !== 'पेमेंटची तारीख निश्चित'); document.getElementById('staffNameGroup').classList.toggle('hidden', status !== 'हप्ता स्टाफकडे भरलेला आहे'); document.getElementById('otherReasonGroup').classList.toggle('hidden', status !== 'इतर'); }
-    document.getElementById('callLogForm').addEventListener('submit', async (e) => { e.preventDefault(); const loanNo = document.getElementById('selectedLoanNo').value; if (!loanNo) { alert('कृपया आधी ग्राहक निवडा.'); return; } let details = ''; const status = document.getElementById('callStatus').value; if (status === 'इतर') { details = document.getElementById('otherReason').value; } const formData = { callDate: new Date().toISOString().slice(0, 10), callerName: document.getElementById('callerName').value, loanNo: loanNo, customerName: document.getElementById('selectedCustomerName').value, status: status, details: details, staffName: document.getElementById('staffName').value, paymentDate: document.getElementById('paymentDate').value, }; try { const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) }); showNotification('माहिती यशस्वीरित्या सेव्ह झाली!', 'success'); document.getElementById('callLogForm').reset(); document.getElementById('selectedCustomerName').value = ''; document.getElementById('selectedLoanNo').value = ''; document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected')); } catch (error) { console.error('Error submitting form:', error); showNotification('त्रुटई! माहिती सेव्ह झाली नाही.', 'error'); } });
-    function showNotification(message, type) { const notification = document.getElementById('notification'); notification.textContent = message; notification.className = `notification ${type} show`; setTimeout(() => { notification.className = 'notification'; }, 3000); }
-    window.onload = async function() { try { const response = await fetch(SCRIPT_URL); allCustomers = await response.json(); if(allCustomers.error){ throw new Error(allCustomers.error); } document.getElementById('loader').style.display = 'none'; filterCustomers(); } catch (error) { console.error('Error fetching customer list:', error); document.getElementById('loader').innerText = `ग्राहक यादी लोड करण्यात अयशस्वी: ${error.message}`; } };
+    function selectCustomer(customerData) {
+        document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected'));
+        const el = document.querySelector(`.customer-item[data-loan-no="${customerData.loanNo}"]`);
+        if(el.classList.contains('processed')) return; // जर कॉल झाला असेल तर निवडू नका
+        if(el) el.classList.add('selected');
+
+        document.getElementById('selectedCustomerName').value = customerData.name;
+        document.getElementById('selectedLoanNo').value = customerData.loanNo;
+        
+        const prevCallContainer = document.getElementById('previousCallContainer');
+        if (customerData.lastCallStatus) {
+            document.getElementById('prevCallDate').textContent = new Date(customerData.lastCallDate).toLocaleDateString('en-GB');
+            document.getElementById('prevCallStatus').textContent = customerData.lastCallStatus;
+            let detailsText = customerData.lastCallDetails || 'काही नाही';
+            if (customerData.lastPromiseDate) {
+                detailsText += ` | पेमेंट तारीख: ${new Date(customerData.lastPromiseDate).toLocaleDateString('en-GB')}`;
+            }
+            document.getElementById('prevCallDetails').textContent = detailsText;
+            prevCallContainer.classList.remove('hidden');
+        } else {
+            prevCallContainer.classList.add('hidden');
+        }
+    }
+
+    function toggleConditionalFields() {
+        const status = document.getElementById('callStatus').value;
+        document.getElementById('paymentDateGroup').classList.toggle('hidden', status !== 'पेमेंटची तारीख निश्चित');
+        document.getElementById('staffNameGroup').classList.toggle('hidden', status !== 'हप्ता स्टाफकडे भरलेला आहे');
+        document.getElementById('otherReasonGroup').classList.toggle('hidden', status !== 'इतर');
+    }
+
+    document.getElementById('callLogForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const loanNo = document.getElementById('selectedLoanNo').value;
+        if (!loanNo) { showNotification('कृपया आधी ग्राहक निवडा.', 'error'); return; }
+
+        const formData = {
+            callDate: new Date().toISOString().slice(0, 10),
+            callerName: document.getElementById('callerName').value,
+            loanNo: loanNo,
+            customerName: document.getElementById('selectedCustomerName').value,
+            status: document.getElementById('callStatus').value,
+            details: document.getElementById('otherReason').value,
+            staffName: document.getElementById('staffName').value,
+            paymentDate: document.getElementById('paymentDate').value,
+        };
+        
+        const submitBtn = e.target.querySelector('.submit-btn');
+        submitBtn.disabled = true; submitBtn.textContent = 'सेव्ह होत आहे...';
+
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+            showNotification('माहिती यशस्वीरित्या सेव्ह झाली!', 'success');
+            
+            const calledItem = document.querySelector(`.customer-item[data-loan-no="${loanNo}"]`);
+            if (calledItem) {
+                calledItem.classList.add('processed');
+                calledItem.querySelector('.done-indicator').classList.remove('hidden');
+            }
+            document.getElementById('callLogForm').reset();
+            document.getElementById('selectedCustomerName').value = '';
+            document.getElementById('selectedLoanNo').value = '';
+            document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected'));
+            document.getElementById('previousCallContainer').classList.add('hidden');
+            toggleConditionalFields();
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            showNotification('त्रुटी! माहिती सेव्ह झाली नाही.', 'error');
+        } finally {
+            submitBtn.disabled = false; submitBtn.textContent = '💾 माहिती सेव्ह करा';
+        }
+    });
+
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        setTimeout(() => { notification.className = 'notification'; }, 3000);
+    }
 </script>
 </body>
 </html>
-
