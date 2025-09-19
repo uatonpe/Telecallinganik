@@ -121,12 +121,12 @@
 
             const masterHeaders = masterDataRows.shift().map(h => String(h).trim());
             const loanNoIndex_master = masterHeaders.indexOf("लोन नंबर");
-            const customerNameIndex_master = masterHeaders.indexOf("ग्राहकचे नांव");
+            const customerNameIndex_master = masterHeaders.indexOf("ग्राहकांचे नांव");
             let unitIndex_master = masterHeaders.indexOf("युनिट नांव");
-            if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नाव");
+            if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नांव");
             const mobileIndex_master = masterHeaders.indexOf("मोबाईल नंबर");
-            const odDaysIndex_master = masterHeaders.indexOf("किती दिवसांपासून");
-            const amountIndex_master = masterHeaders.indexOf("एकूण");
+            const odDaysIndex_master = masterHeaders.indexOf("किती दिवसांपासुन ओडी");
+            const amountIndex_master = masterHeaders.indexOf("एकुण");
 
             if ([loanNoIndex_master, customerNameIndex_master, unitIndex_master, odDaysIndex_master, amountIndex_master].includes(-1)) {
                 alert("त्रुटी: 'MasterData' शीटमध्ये आवश्यक कॉलम (उदा. लोन नंबर, ग्राहकचे नांव, युनिट नांव, किती दिवसांपासून, एकूण) सापडले नाहीत. कृपया स्पेलिंग तपासा.");
@@ -396,4 +396,5 @@
 </script>
 </body>
 </html>
+
 
