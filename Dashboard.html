@@ -83,7 +83,7 @@
 
 <script>
     const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ"; 
-    const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8"; // **कृपया तुमचा योग्य SPREADSHEET ID येथे टाका**
+    const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8";
     
     const LOG_SHEET_NAME = "CallLogs";
     const MASTER_DATA_SHEET_NAME = "MasterData";
@@ -110,21 +110,27 @@
             const masterDataRows = data.valueRanges[1].values || [];
             
             if (callLogRows.length < 2 || masterDataRows.length < 2) {
+                console.warn("Data not found or sheets are empty.");
                 allCallData = [];
                 updateDashboard();
                 return;
             }
 
-            // **[FIX 1] 'MasterData' कॉलमची नावे अचूकपणे ओळखणे**
+            // **[FIX 1] 'MasterData' कॉलमची नावे अचूकपणे ओळखणे आणि सामान्य चुका हाताळणे**
             const masterHeaders = masterDataRows.shift().map(h => String(h).trim());
             const loanNoIndex_master = masterHeaders.indexOf("लोन नंबर");
-            const unitIndex_master = masterHeaders.indexOf("युनिट नांव");
+            
+            // 'युनिट नांव' आणि 'युनिट नाव' या दोन्ही शक्यता तपासणे
+            let unitIndex_master = masterHeaders.indexOf("युनिट नांव"); 
+            if (unitIndex_master === -1) {
+                unitIndex_master = masterHeaders.indexOf("युनिट नाव");
+            }
+            
             const mobileIndex_master = masterHeaders.indexOf("मोबाईल नंबर");
 
-            if ([loanNoIndex_master, unitIndex_master, mobileIndex_master].includes(-1)) {
-                alert("ERROR: 'MasterData' शीटमध्ये 'लोन नंबर', 'युनिट नांव', किंवा 'मोबाईल नंबर' या नावाचे कॉलम सापडले नाहीत. कृपया स्पेलिंग तपासा.");
-                return;
-            }
+            if (loanNoIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'लोन नंबर' नावाचा कॉलम सापडला नाही. कृपया स्पेलिंग तपासा."); return; }
+            if (unitIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'युनिट नांव' किंवा 'युनिट नाव' नावाचा कॉलम सापडला नाही. कृपया स्पेलिंग तपासा."); return; }
+            if (mobileIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'मोबाईल नंबर' नावाचा कॉलम सापडला नाही. कृपया स्पेलिंग तपासा."); return; }
 
             const loanDetailsLookup = new Map();
             const uniqueUnits = new Set();
@@ -140,7 +146,6 @@
             });
             populateUnitFilter(uniqueUnits);
 
-            // **[FIX 2] 'CallLogs' कॉलमची नावे अचूकपणे ओळखणे**
             const callLogHeaders = callLogRows.shift().map(h => String(h).trim());
             const dateIndex = callLogHeaders.indexOf("Date");
             const callerIndex = callLogHeaders.indexOf("Caller Name");
@@ -160,18 +165,18 @@
 
                 return {
                     date: row[dateIndex], caller: callerName, loanNo: loanNo,
-                    customerName: row[customerNameIndex], status: row[statusIndex],
+                    customerName: row[customerNameIndex], status: row[statusIndex] || '', // status null नसल्याची खात्री करणे
                     rawDetails: row[detailsIndex], amountPaidTo: row[amountPaidToIndex],
                     paymentDate: row[paymentDateIndex],
                     unit: details.unit, mobileNo: details.mobile
                 };
-            });
+            }).filter(row => row.date); // तारखेशिवायच्या नोंदी वगळणे
             
             populateCallerFilter(uniqueCallers);
             updateDashboard();
         } catch (error) {
             console.error("Error fetching data:", error);
-            alert("डेटा लोड करण्यात अयशस्वी. तुमची API Key आणि Spreadsheet ID बरोबर असल्याची खात्री करा. तसेच, शीटमधील कॉलमची नावे तपासा.");
+            alert("डेटा लोड करण्यात अयशस्वी. तुमची API Key आणि Spreadsheet ID बरोबर असल्याची खात्री करा. तसेच, शीटमधील कॉलमची नावे तपासा आणि इंटरनेट कनेक्शन चालू ठेवा.");
         }
     }
     
@@ -194,17 +199,23 @@
         
         dailyFilteredData = allCallData.filter(row => row.date === selectedDate && (selectedUnit === 'All' || row.unit === selectedUnit) && (selectedCaller === 'All' || row.caller === selectedCaller));
         
-        const kpiCounts = dailyFilteredData.reduce((acc, row) => {
-            acc[row.status] = (acc[row.status] || 0) + 1;
-            return acc;
-        }, {});
+        // **[FIX 2] KPI मोजणीसाठी लवचिक पद्धत वापरणे** 
+        // यामुळे 'Status' कॉलममध्ये लिहिलेल्या वेगवेगळ्या पद्धती (उदा. "पेमेंटची तारीख दिली") सुद्धा मोजल्या जातील.
+        const kpiCounts = {
+            total: dailyFilteredData.length,
+            ptp: dailyFilteredData.filter(r => r.status.includes('पेमेंटची तारीख')).length,
+            paidToStaff: dailyFilteredData.filter(r => r.status.includes('हप्ता')).length,
+            interestIssue: dailyFilteredData.filter(r => r.status === 'व्याजाचा इश्यू').length,
+            wrongNo: dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर').length,
+            notPicked: dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही').length
+        };
 
-        document.getElementById('valTotalCalls').innerText = dailyFilteredData.length;
-        document.getElementById('valPtp').innerText = kpiCounts['पेमेंटची तारीख निश्चित'] || 0;
-        document.getElementById('valWrongNo').innerText = kpiCounts['चुकीचा मोबाईल नंबर'] || 0;
-        document.getElementById('valNotPicked').innerText = kpiCounts['कॉल घेतला नाही'] || 0;
-        document.getElementById('valPaidToStaff').innerText = kpiCounts['हप्ता स्टाफकडे भरलेला आहे'] || 0;
-        document.getElementById('valInterestIssue').innerText = kpiCounts['व्याजाचा इश्यू'] || 0;
+        document.getElementById('valTotalCalls').innerText = kpiCounts.total;
+        document.getElementById('valPtp').innerText = kpiCounts.ptp;
+        document.getElementById('valPaidToStaff').innerText = kpiCounts.paidToStaff;
+        document.getElementById('valInterestIssue').innerText = kpiCounts.interestIssue;
+        document.getElementById('valWrongNo').innerText = kpiCounts.wrongNo;
+        document.getElementById('valNotPicked').innerText = kpiCounts.notPicked;
 
         drawStatusPieChart(dailyFilteredData);
         drawCallerPerformanceChart(dailyFilteredData);
@@ -215,12 +226,6 @@
         const chartData = [['स्टेटस', 'संख्या'], ...Object.entries(statusCounts)];
         const options = { pieHole: 0.4, fontName: 'Noto Sans Devanagari', legend: { position: 'bottom' }, chartArea:{left:15,top:20,width:'90%',height:'75%'} };
         const chart = new google.visualization.PieChart(document.getElementById('statusPieChart'));
-        google.visualization.events.addListener(chart, 'select', () => {
-            if (chart.getSelection().length > 0) {
-                const selectedStatus = chartData[chart.getSelection()[0].row + 1][0];
-                displayCustomerModal(`'${selectedStatus}' असलेले ग्राहक`, data.filter(row => row.status === selectedStatus));
-            }
-        });
         chart.draw(google.visualization.arrayToDataTable(chartData.length > 1 ? chartData : [['Data', 0]]), options);
     }
     
@@ -241,9 +246,35 @@
     }
 
     function showKpiDetails(kpiType) {
-        const statusMap = { total: 'एकूण कॉल्स', ptp: 'पेमेंटची तारीख निश्चित', wrongNo: 'चुकीचा मोबाईल नंबर', notPicked: 'कॉल घेतला नाही', paidToStaff: 'हप्ता स्टाफकडे भरलेला आहे', interestIssue: 'व्याजाचा इश्यू' };
-        const title = statusMap[kpiType];
-        const dataToShow = (kpiType === 'total') ? dailyFilteredData : dailyFilteredData.filter(r => r.status === title);
+        let title = '';
+        let dataToShow = [];
+
+        switch(kpiType) {
+            case 'total':
+                title = 'एकूण कॉल्स';
+                dataToShow = dailyFilteredData;
+                break;
+            case 'ptp':
+                title = 'पेमेंटची तारीख निश्चित';
+                dataToShow = dailyFilteredData.filter(r => r.status.includes('पेमेंटची तारीख'));
+                break;
+            case 'paidToStaff':
+                title = 'हप्ता स्टाफकडे भरला';
+                dataToShow = dailyFilteredData.filter(r => r.status.includes('हप्ता'));
+                break;
+            case 'interestIssue':
+                title = 'व्याजाचा इश्यू';
+                dataToShow = dailyFilteredData.filter(r => r.status === 'व्याजाचा इश्यू');
+                break;
+            case 'wrongNo':
+                title = 'चुकीचा मोबाईल नंबर';
+                dataToShow = dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर');
+                break;
+            case 'notPicked':
+                title = 'कॉल घेतला नाही';
+                dataToShow = dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही');
+                break;
+        }
         displayCustomerModal(`${title} तपशील`, dataToShow);
     }
 
@@ -256,10 +287,10 @@
         } else {
             tableBody.innerHTML = customerData.map(c => {
                 let fullDetails = c.status || '';
-                // **[FIX 3] तपशील दाखवण्यासाठी अचूक आणि सुधारित लॉजिक**
-                if (c.status === 'पेमेंटची तारीख निश्चित' && c.paymentDate) {
+                // **[FIX 3] तपशील दाखवण्यासाठी लवचिक लॉजिक**
+                if (c.status.includes('पेमेंटची तारीख') && c.paymentDate) {
                     fullDetails += ` (${c.paymentDate})`;
-                } else if (c.status === 'हप्ता स्टाफकडे भरलेला आहे' && c.amountPaidTo) {
+                } else if (c.status.includes('हप्ता') && c.amountPaidTo) {
                     fullDetails += ` (${c.amountPaidTo})`;
                 } else if (c.rawDetails && String(c.rawDetails).trim() !== '') {
                     fullDetails += ` (${c.rawDetails})`;
@@ -274,6 +305,3 @@
 </script>
 </body>
 </html>
-
-
-
