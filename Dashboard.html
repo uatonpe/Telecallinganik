@@ -67,7 +67,7 @@
     </div>
     <div class="dashboard-grid">
         <div class="chart-card"><h3>📊 आजच्या कॉलचे प्रतिसाद वर्गीकरण</h3><div id="statusPieChart" style="width: 100%; height: 400px;"></div></div>
-        <div class="chart-card"><h3>📈 कॉलरनुसार प्रतिसादांचे वर्गीकरण</h3><div id="callerPerformanceChart" style="width: 100%; height: 400px;"></div></div>
+        <div class="chart-card"><h3>📈 ओडी वर्गीकरण (OD Classification)</h3><div id="odClassificationChart" style="width: 100%; height: 400px;"></div></div>
     </div>
 </div>
 <div id="customerModal" class="modal">
@@ -90,6 +90,7 @@
     const MASTER_DATA_SHEET_NAME = "MasterData";
 
     let allCallData = [];
+    let allMasterData = []; // To store all master data for OD chart
     let dailyFilteredData = [];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -110,70 +111,85 @@
             const callLogRows = data.valueRanges[0].values || [];
             const masterDataRows = data.valueRanges[1].values || [];
             
-            if (callLogRows.length < 2 || masterDataRows.length < 2) {
-                console.warn("Data not found or sheets are empty.");
+            if (masterDataRows.length < 2) {
+                console.warn("MasterData sheet not found or is empty.");
+                allMasterData = [];
                 allCallData = [];
                 updateDashboard();
                 return;
             }
 
-            // **[FIX 1] 'MasterData' कॉलमची नावे अचूकपणे ओळखणे आणि सामान्य चुका हाताळणे**
             const masterHeaders = masterDataRows.shift().map(h => String(h).trim());
             const loanNoIndex_master = masterHeaders.indexOf("लोन नंबर");
-            
-            // 'युनिट नांव' आणि 'युनिट नाव' या दोन्ही शक्यता तपासणे
             let unitIndex_master = masterHeaders.indexOf("युनिट नांव"); 
-            if (unitIndex_master === -1) {
-                unitIndex_master = masterHeaders.indexOf("युनिट नाव");
-            }
-            
+            if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नाव");
             const mobileIndex_master = masterHeaders.indexOf("मोबाईल नंबर");
+            
+            // --- UPDATED LINES BASED ON YOUR SCREENSHOT ---
+            const odDaysIndex_master = masterHeaders.indexOf("किती दिवसांपासून"); // Changed from "ओडी दिवस"
+            const amountIndex_master = masterHeaders.indexOf("एकूण"); // Changed from "एकूण रक्कम"
 
-            if (loanNoIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'लोन नंबर' नावाचा कॉलम सापडला नाही. कृपया स्पेलिंग तपासा."); return; }
-            if (unitIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'युनिट नांव' किंवा 'युनिट नाव' नावाचा कॉलम सापडला नाही. कृपया स्पेलिंग तपासा."); return; }
-            if (mobileIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'मोबाईल नंबर' नावाचा कॉलम सापडला नाही. कृपया स्पेलिंग तपासा."); return; }
+            if (loanNoIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'लोन नंबर' कॉलम सापडला नाही."); return; }
+            if (unitIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'युनिट नांव' किंवा 'युनिट नाव' कॉलम सापडला नाही."); return; }
+            if (mobileIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'मोबाईल नंबर' कॉलम सापडला नाही."); return; }
+            
+            // --- UPDATED ERROR MESSAGES ---
+            if (odDaysIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'किती दिवसांपासून' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
+            if (amountIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'एकूण' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
+
 
             const loanDetailsLookup = new Map();
             const uniqueUnits = new Set();
-            masterDataRows.forEach(row => {
-                const loanNo = row[loanNoIndex_master];
-                if (loanNo) {
-                    loanDetailsLookup.set(String(loanNo).trim(), { 
-                        unit: row[unitIndex_master] || 'अज्ञात', 
-                        mobile: row[mobileIndex_master] || '-' 
-                    });
-                    if(row[unitIndex_master]) uniqueUnits.add(row[unitIndex_master]);
-                }
-            });
+            
+            allMasterData = masterDataRows.map(row => {
+                 const loanNo = row[loanNoIndex_master];
+                 if (!loanNo) return null;
+
+                 const unit = row[unitIndex_master] || 'अज्ञात';
+                 const mobile = row[mobileIndex_master] || '-';
+                 
+                 loanDetailsLookup.set(String(loanNo).trim(), { unit, mobile });
+                 if(unit !== 'अज्ञात') uniqueUnits.add(unit);
+
+                 return {
+                    loanNo: String(loanNo).trim(),
+                    unit: unit,
+                    odDays: parseInt(row[odDaysIndex_master], 10) || 0,
+                    amount: parseFloat(String(row[amountIndex_master]).replace(/,/g, '')) || 0 // Handle commas in numbers
+                 };
+            }).filter(item => item !== null);
+
             populateUnitFilter(uniqueUnits);
 
-            const callLogHeaders = callLogRows.shift().map(h => String(h).trim());
-            const dateIndex = callLogHeaders.indexOf("Date");
-            const callerIndex = callLogHeaders.indexOf("Caller Name");
-            const loanNoIndex_logs = callLogHeaders.indexOf("Loan Number");
-            const customerNameIndex = callLogHeaders.indexOf("Customer Name");
-            const statusIndex = callLogHeaders.indexOf("Status");
-            const detailsIndex = callLogHeaders.indexOf("Details");
-            const amountPaidToIndex = callLogHeaders.indexOf("Amount Paid To");
-            const paymentDateIndex = callLogHeaders.indexOf("Payment Date");
-            
-            const uniqueCallers = new Set();
-            allCallData = callLogRows.map(row => {
-                const loanNo = row[loanNoIndex_logs];
-                const details = loanDetailsLookup.get(String(loanNo).trim()) || { unit: 'अज्ञात', mobile: '-' };
-                const callerName = row[callerIndex];
-                if(callerName) uniqueCallers.add(callerName);
+            if (callLogRows.length > 1) {
+                const callLogHeaders = callLogRows.shift().map(h => String(h).trim());
+                const dateIndex = callLogHeaders.indexOf("Date");
+                const callerIndex = callLogHeaders.indexOf("Caller Name");
+                const loanNoIndex_logs = callLogHeaders.indexOf("Loan Number");
+                const customerNameIndex = callLogHeaders.indexOf("Customer Name");
+                const statusIndex = callLogHeaders.indexOf("Status");
+                const detailsIndex = callLogHeaders.indexOf("Details");
+                const amountPaidToIndex = callLogHeaders.indexOf("Amount Paid To");
+                const paymentDateIndex = callLogHeaders.indexOf("Payment Date");
+                
+                const uniqueCallers = new Set();
+                allCallData = callLogRows.map(row => {
+                    const loanNo = row[loanNoIndex_logs];
+                    const details = loanDetailsLookup.get(String(loanNo).trim()) || { unit: 'अज्ञात', mobile: '-' };
+                    const callerName = row[callerIndex];
+                    if(callerName) uniqueCallers.add(callerName);
 
-                return {
-                    date: row[dateIndex], caller: callerName, loanNo: loanNo,
-                    customerName: row[customerNameIndex], status: row[statusIndex] || '', // status null नसल्याची खात्री करणे
-                    rawDetails: row[detailsIndex], amountPaidTo: row[amountPaidToIndex],
-                    paymentDate: row[paymentDateIndex],
-                    unit: details.unit, mobileNo: details.mobile
-                };
-            }).filter(row => row.date); // तारखेशिवायच्या नोंदी वगळणे
+                    return {
+                        date: row[dateIndex], caller: callerName, loanNo: loanNo,
+                        customerName: row[customerNameIndex], status: row[statusIndex] || '',
+                        rawDetails: row[detailsIndex], amountPaidTo: row[amountPaidToIndex],
+                        paymentDate: row[paymentDateIndex],
+                        unit: details.unit, mobileNo: details.mobile
+                    };
+                }).filter(row => row.date);
+                populateCallerFilter(uniqueCallers);
+            }
             
-            populateCallerFilter(uniqueCallers);
             updateDashboard();
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -200,8 +216,6 @@
         
         dailyFilteredData = allCallData.filter(row => row.date === selectedDate && (selectedUnit === 'All' || row.unit === selectedUnit) && (selectedCaller === 'All' || row.caller === selectedCaller));
         
-        // **[FIX 2] KPI मोजणीसाठी लवचिक पद्धत वापरणे** 
-        // यामुळे 'Status' कॉलममध्ये लिहिलेल्या वेगवेगळ्या पद्धती (उदा. "पेमेंटची तारीख दिली") सुद्धा मोजल्या जातील.
         const kpiCounts = {
             total: dailyFilteredData.length,
             ptp: dailyFilteredData.filter(r => r.status.includes('पेमेंटची तारीख')).length,
@@ -210,11 +224,8 @@
             wrongNo: dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर').length,
             notPicked: dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही').length,
             other: dailyFilteredData.filter(r => 
-                !r.status.includes('पेमेंटची तारीख') &&
-                !r.status.includes('हप्ता') &&
-                r.status !== 'व्याजाचा इश्यू' &&
-                r.status !== 'चुकीचा मोबाईल नंबर' &&
-                r.status !== 'कॉल घेतला नाही'
+                !r.status.includes('पेमेंटची तारीख') && !r.status.includes('हप्ता') &&
+                r.status !== 'व्याजाचा इश्यू' && r.status !== 'चुकीचा मोबाईल नंबर' && r.status !== 'कॉल घेतला नाही'
             ).length
         };
 
@@ -227,7 +238,7 @@
         document.getElementById('valOther').innerText = kpiCounts.other;
 
         drawStatusPieChart(dailyFilteredData);
-        drawCallerPerformanceChart(dailyFilteredData);
+        drawOdClassificationChart(); // New chart function call
     }
     
     function drawStatusPieChart(data) {
@@ -238,61 +249,75 @@
         chart.draw(google.visualization.arrayToDataTable(chartData.length > 1 ? chartData : [['Data', 0]]), options);
     }
     
-    function drawCallerPerformanceChart(data) {
-        if (data.length === 0) {
-            document.getElementById('callerPerformanceChart').innerHTML = '<p style="text-align:center;color:grey;margin-top:50px;">या तारखेसाठी कोणताही डेटा उपलब्ध नाही.</p>';
+    function drawOdClassificationChart() {
+        const selectedUnit = document.getElementById('unitFilter').value;
+
+        const filteredMasterData = (selectedUnit === 'All')
+            ? allMasterData
+            : allMasterData.filter(item => item.unit === selectedUnit);
+
+        if (filteredMasterData.length === 0) {
+            document.getElementById('odClassificationChart').innerHTML = '<p style="text-align:center;color:grey;margin-top:50px;">या युनिटसाठी कोणताही OD डेटा उपलब्ध नाही.</p>';
             return;
         }
-        const callerStatus = {};
-        const allStatuses = new Set(data.map(r => r.status));
-        data.forEach(row => { if (!callerStatus[row.caller]) callerStatus[row.caller] = {}; callerStatus[row.caller][row.status] = (callerStatus[row.caller][row.status] || 0) + 1; });
-        const sortedStatuses = Array.from(allStatuses).sort();
-        const chartData = [['कॉलर', ...sortedStatuses]];
-        for (const caller in callerStatus) { const row = [caller]; sortedStatuses.forEach(status => { row.push(callerStatus[caller][status] || 0); }); chartData.push(row); }
-        const options = { isStacked: true, fontName: 'Noto Sans Devanagari', legend: { position: 'top', maxLines: 3 }, chartArea: {width: '70%', height: '75%'}, hAxis: { title: 'एकूण कॉल्स', minValue: 0 }, vAxis: { textStyle: {fontSize: 12} }, bar: { groupWidth: '75%' } };
-        const chart = new google.visualization.BarChart(document.getElementById('callerPerformanceChart'));
+
+        const odBuckets = {
+            '0-30': { count: 0, amount: 0 }, '31-60': { count: 0, amount: 0 },
+            '61-90': { count: 0, amount: 0 }, '91+': { count: 0, amount: 0 }
+        };
+
+        filteredMasterData.forEach(item => {
+            const days = item.odDays;
+            const amt = item.amount;
+            
+            if (days >= 0 && days <= 30) { odBuckets['0-30'].count++; odBuckets['0-30'].amount += amt; } 
+            else if (days >= 31 && days <= 60) { odBuckets['31-60'].count++; odBuckets['31-60'].amount += amt; } 
+            else if (days >= 61 && days <= 90) { odBuckets['61-90'].count++; odBuckets['61-90'].amount += amt; } 
+            else if (days >= 91) { odBuckets['91+'].count++; odBuckets['91+'].amount += amt; }
+        });
+
+        const chartData = [
+            ['ओडी दिवस', 'खात्यांची संख्या', 'एकूण रक्कम'],
+            ['0-30 दिवस', odBuckets['0-30'].count, odBuckets['0-30'].amount],
+            ['31-60 दिवस', odBuckets['31-60'].count, odBuckets['31-60'].amount],
+            ['61-90 दिवस', odBuckets['61-90'].count, odBuckets['61-90'].amount],
+            ['91+ दिवस', odBuckets['91+'].count, odBuckets['91+'].amount]
+        ];
+        
+        const options = {
+            fontName: 'Noto Sans Devanagari',
+            legend: { position: 'top', maxLines: 3 },
+            chartArea: { width: '80%', height: '70%' },
+            hAxis: { title: 'ओडी दिवस गट' },
+            vAxes: {
+              0: {title: 'खात्यांची संख्या (No. A/C)', format: '0'},
+              1: {title: 'एकूण रक्कम (Amount)', format: 'short'}
+            },
+            series: {
+              0: {targetAxisIndex: 0, type: 'bars'},
+              1: {targetAxisIndex: 1, type: 'bars'}
+            },
+            bar: { groupWidth: '60%' },
+            colors: ['#007bff', '#dc3545']
+        };
+
+        const chart = new google.visualization.ColumnChart(document.getElementById('odClassificationChart'));
         chart.draw(google.visualization.arrayToDataTable(chartData), options);
     }
 
     function showKpiDetails(kpiType) {
         let title = '';
         let dataToShow = [];
-
         switch(kpiType) {
-            case 'total':
-                title = 'एकूण कॉल्स';
-                dataToShow = dailyFilteredData;
-                break;
-            case 'ptp':
-                title = 'पेमेंटची तारीख निश्चित';
-                dataToShow = dailyFilteredData.filter(r => r.status.includes('पेमेंटची तारीख'));
-                break;
-            case 'paidToStaff':
-                title = 'हप्ता स्टाफकडे भरला';
-                dataToShow = dailyFilteredData.filter(r => r.status.includes('हप्ता'));
-                break;
-            case 'interestIssue':
-                title = 'व्याजाचा इश्यू';
-                dataToShow = dailyFilteredData.filter(r => r.status === 'व्याजाचा इश्यू');
-                break;
-            case 'wrongNo':
-                title = 'चुकीचा मोबाईल नंबर';
-                dataToShow = dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर');
-                break;
-            case 'notPicked':
-                title = 'कॉल घेतला नाही';
-                dataToShow = dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही');
-                break;
-            case 'other':
-                title = 'इतर';
-                dataToShow = dailyFilteredData.filter(r => 
-                    !r.status.includes('पेमेंटची तारीख') &&
-                    !r.status.includes('हप्ता') &&
-                    r.status !== 'व्याजाचा इश्यू' &&
-                    r.status !== 'चुकीचा मोबाईल नंबर' &&
-                    r.status !== 'कॉल घेतला नाही'
-                );
-                break;
+            case 'total': title = 'एकूण कॉल्स'; dataToShow = dailyFilteredData; break;
+            case 'ptp': title = 'पेमेंटची तारीख निश्चित'; dataToShow = dailyFilteredData.filter(r => r.status.includes('पेमेंटची तारीख')); break;
+            case 'paidToStaff': title = 'हप्ता स्टाफकडे भरला'; dataToShow = dailyFilteredData.filter(r => r.status.includes('हप्ता')); break;
+            case 'interestIssue': title = 'व्याजाचा इश्यू'; dataToShow = dailyFilteredData.filter(r => r.status === 'व्याजाचा इश्यू'); break;
+            case 'wrongNo': title = 'चुकीचा मोबाईल नंबर'; dataToShow = dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर'); break;
+            case 'notPicked': title = 'कॉल घेतला नाही'; dataToShow = dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही'); break;
+            case 'other': title = 'इतर'; dataToShow = dailyFilteredData.filter(r => 
+                    !r.status.includes('पेमेंटची तारीख') && !r.status.includes('हप्ता') &&
+                    r.status !== 'व्याजाचा इश्यू' && r.status !== 'चुकीचा मोबाईल नंबर' && r.status !== 'कॉल घेतला नाही'); break;
         }
         displayCustomerModal(`${title} तपशील`, dataToShow);
     }
@@ -300,26 +325,19 @@
     function displayCustomerModal(title, customerData) {
         document.getElementById('modalTitle').innerText = `${title} (${customerData.length})`;
         const tableBody = document.getElementById('customerListBody');
-        
         if(customerData.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कोणतेही रेकॉर्ड उपलब्ध नाही.</td></tr>`;
         } else {
             tableBody.innerHTML = customerData.map(c => {
                 let fullDetails = c.status || '';
-                // **[FIX 3] तपशील दाखवण्यासाठी लवचिक लॉजिक**
-                if (c.status.includes('पेमेंटची तारीख') && c.paymentDate) {
-                    fullDetails += ` (${c.paymentDate})`;
-                } else if (c.status.includes('हप्ता') && c.amountPaidTo) {
-                    fullDetails += ` (${c.amountPaidTo})`;
-                } else if (c.rawDetails && String(c.rawDetails).trim() !== '') {
-                    fullDetails += ` (${c.rawDetails})`;
-                }
+                if (c.status.includes('पेमेंटची तारीख') && c.paymentDate) fullDetails += ` (${c.paymentDate})`;
+                else if (c.status.includes('हप्ता') && c.amountPaidTo) fullDetails += ` (${c.amountPaidTo})`;
+                else if (c.rawDetails && String(c.rawDetails).trim() !== '') fullDetails += ` (${c.rawDetails})`;
                 return `<tr><td>${c.loanNo || '-'}</td><td>${c.customerName || '-'}</td><td>${c.mobileNo || '-'}</td><td>${fullDetails || '-'}</td></tr>`
             }).join('');
         }
         document.getElementById('customerModal').style.display = 'block';
     }
-
     function closeModal() { document.getElementById('customerModal').style.display = 'none'; }
 </script>
 </body>
