@@ -31,7 +31,7 @@
     .kpi-icon svg { width: 24px; height: 24px; }
     .kpi-content .value { font-size: 32px; font-weight: 700; color: var(--primary-text); }
     .kpi-content .label { font-size: 15px; color: var(--secondary-text); }
-    #kpiCalls .kpi-icon { background: #e6f2ff; color: var(--accent-blue); } #kpiPtp .kpi-icon { background: #eaf7ea; color: var(--accent-green); } #kpiPaidToStaff .kpi-icon { background: #e9f9f5; color: var(--accent-teal); } #kpiInterestIssue .kpi-icon { background: #fff0e0; color: #ff8c00; } #kpiWrongNo .kpi-icon { background: #fff4e6; color: var(--accent-orange); } #kpiNotPicked .kpi-icon { background: #fde8e8; color: var(--accent-red); }
+    #kpiCalls .kpi-icon { background: #e6f2ff; color: var(--accent-blue); } #kpiPtp .kpi-icon { background: #eaf7ea; color: var(--accent-green); } #kpiPaidToStaff .kpi-icon { background: #e9f9f5; color: var(--accent-teal); } #kpiInterestIssue .kpi-icon { background: #fff0e0; color: #ff8c00; } #kpiWrongNo .kpi-icon { background: #fff4e6; color: var(--accent-orange); } #kpiNotPicked .kpi-icon { background: #fde8e8; color: var(--accent-red); } #kpiOther .kpi-icon { background: #f2e9fc; color: var(--accent-purple); }
     .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
     @media (max-width: 1000px) { .dashboard-grid { grid-template-columns: 1fr; } }
     .chart-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); }
@@ -63,6 +63,7 @@
         <div class="kpi-card" id="kpiInterestIssue" onclick="showKpiDetails('interestIssue')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg></div><div class="kpi-content"><div class="value" id="valInterestIssue">0</div><div class="label">व्याजाचा इश्यू</div></div></div>
         <div class="kpi-card" id="kpiWrongNo" onclick="showKpiDetails('wrongNo')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11.95.706a.5.5 0 0 1 .547.098l.53.53a.5.5 0 0 1 0 .708L8.835 6.22a.5.5 0 0 1-.707 0l-.53-.53a.5.5 0 0 1 0-.707l4.723-4.184a.5.5 0 0 1 .547-.098zm-2.43 2.585a.5.5 0 0 0-.612.334L8.25 6.342a.5.5 0 0 0 .612.334l.278-.64a.5.5 0 0 0-.333-.612l-.64-.278zm2.59.085a.5.5 0 0 0-.293.425l-.133.728a.5.5 0 0 0 .425.293l.728.133a.5.5 0 0 0 .293-.425l.133-.728a.5.5 0 0 0-.425-.293l-.728-.133zM3.363 7.043a.5.5 0 0 1-.547.098L.53 3.422a.5.5 0 0 1 0-.707L4.723.43a.5.5 0 0 1 .547.098l2.286 3.738a.5.5 0 0 1 0 .707L3.363 7.043zm1.187-1.187a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707zm-.707-1.414a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707z"/></svg></div><div class="kpi-content"><div class="value" id="valWrongNo">0</div><div class="label">चुकीचा मोबाईल नंबर</div></div></div>
         <div class="kpi-card" id="kpiNotPicked" onclick="showKpiDetails('notPicked')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg></div><div class="kpi-content"><div class="value" id="valNotPicked">0</div><div class="label">कॉल घेतला नाही</div></div></div>
+        <div class="kpi-card" id="kpiOther" onclick="showKpiDetails('other')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/></svg></div><div class="kpi-content"><div class="value" id="valOther">0</div><div class="label">इतर</div></div></div>
     </div>
     <div class="dashboard-grid">
         <div class="chart-card"><h3>📊 आजच्या कॉलचे प्रतिसाद वर्गीकरण</h3><div id="statusPieChart" style="width: 100%; height: 400px;"></div></div>
@@ -207,7 +208,14 @@
             paidToStaff: dailyFilteredData.filter(r => r.status.includes('हप्ता')).length,
             interestIssue: dailyFilteredData.filter(r => r.status === 'व्याजाचा इश्यू').length,
             wrongNo: dailyFilteredData.filter(r => r.status === 'चुकीचा मोबाईल नंबर').length,
-            notPicked: dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही').length
+            notPicked: dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही').length,
+            other: dailyFilteredData.filter(r => 
+                !r.status.includes('पेमेंटची तारीख') &&
+                !r.status.includes('हप्ता') &&
+                r.status !== 'व्याजाचा इश्यू' &&
+                r.status !== 'चुकीचा मोबाईल नंबर' &&
+                r.status !== 'कॉल घेतला नाही'
+            ).length
         };
 
         document.getElementById('valTotalCalls').innerText = kpiCounts.total;
@@ -216,6 +224,7 @@
         document.getElementById('valInterestIssue').innerText = kpiCounts.interestIssue;
         document.getElementById('valWrongNo').innerText = kpiCounts.wrongNo;
         document.getElementById('valNotPicked').innerText = kpiCounts.notPicked;
+        document.getElementById('valOther').innerText = kpiCounts.other;
 
         drawStatusPieChart(dailyFilteredData);
         drawCallerPerformanceChart(dailyFilteredData);
@@ -273,6 +282,16 @@
             case 'notPicked':
                 title = 'कॉल घेतला नाही';
                 dataToShow = dailyFilteredData.filter(r => r.status === 'कॉल घेतला नाही');
+                break;
+            case 'other':
+                title = 'इतर';
+                dataToShow = dailyFilteredData.filter(r => 
+                    !r.status.includes('पेमेंटची तारीख') &&
+                    !r.status.includes('हप्ता') &&
+                    r.status !== 'व्याजाचा इश्यू' &&
+                    r.status !== 'चुकीचा मोबाईल नंबर' &&
+                    r.status !== 'कॉल घेतला नाही'
+                );
                 break;
         }
         displayCustomerModal(`${title} तपशील`, dataToShow);
