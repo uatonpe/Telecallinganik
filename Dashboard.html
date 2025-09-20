@@ -44,6 +44,14 @@
     #customerListTable { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
     #customerListTable th, #customerListTable td { border: 1px solid #ddd; padding: 10px; text-align: left; }
     #customerListTable th { background-color: #f2f2f2; font-weight: 600; }
+    /* Styles for the new OD Table */
+    .od-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
+    .od-table th, .od-table td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; }
+    .od-table th { background-color: #f8f9fa; font-weight: 600; }
+    .od-table td:nth-child(2), .od-table td:nth-child(3) { text-align: right; }
+    .clickable-cell { color: var(--accent-blue); text-decoration: underline; cursor: pointer; font-weight: bold; }
+    .clickable-cell:hover { color: #0056b3; }
+    .empty-data-message { text-align: center; color: grey; margin-top: 50px; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -57,17 +65,18 @@
 </header>
 <div class="main-container">
     <div class="kpi-grid">
+        <!-- KPI Cards remain the same -->
         <div class="kpi-card" id="kpiCalls" onclick="showKpiDetails('total')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58z"/></svg></div><div class="kpi-content"><div class="value" id="valTotalCalls">0</div><div class="label">एकूण कॉल्स</div></div></div>
         <div class="kpi-card" id="kpiPtp" onclick="showKpiDetails('ptp')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></div><div class="kpi-content"><div class="value" id="valPtp">0</div><div class="label">पेमेंटची तारीख निश्चित</div></div></div>
         <div class="kpi-card" id="kpiPaidToStaff" onclick="showKpiDetails('paidToStaff')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1zm12-1a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM15 5a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1zM8 8a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z"/></svg></div><div class="kpi-content"><div class="value" id="valPaidToStaff">0</div><div class="label">हप्ता स्टाफकडे भरला</div></div></div>
-        <div class="kpi-card" id="kpiInterestIssue" onclick="showKpiDetails('interestIssue')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg></div><div class="kpi-content"><div class="value" id="valInterestIssue">0</div><div class="label">व्याजाचा इश्यू</div></div></div>
+        <div class="kpi-card" id="kpiInterestIssue" onclick="showKpiDetails('interestIssue')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.json_string_value 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg></div><div class="kpi-content"><div class="value" id="valInterestIssue">0</div><div class="label">व्याजाचा इश्यू</div></div></div>
         <div class="kpi-card" id="kpiWrongNo" onclick="showKpiDetails('wrongNo')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11.95.706a.5.5 0 0 1 .547.098l.53.53a.5.5 0 0 1 0 .708L8.835 6.22a.5.5 0 0 1-.707 0l-.53-.53a.5.5 0 0 1 0-.707l4.723-4.184a.5.5 0 0 1 .547-.098zm-2.43 2.585a.5.5 0 0 0-.612.334L8.25 6.342a.5.5 0 0 0 .612.334l.278-.64a.5.5 0 0 0-.333-.612l-.64-.278zm2.59.085a.5.5 0 0 0-.293.425l-.133.728a.5.5 0 0 0 .425.293l.728.133a.5.5 0 0 0 .293-.425l.133-.728a.5.5 0 0 0-.425-.293l-.728-.133zM3.363 7.043a.5.5 0 0 1-.547.098L.53 3.422a.5.5 0 0 1 0-.707L4.723.43a.5.5 0 0 1 .547.098l2.286 3.738a.5.5 0 0 1 0 .707L3.363 7.043zm1.187-1.187a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707zm-.707-1.414a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707z"/></svg></div><div class="kpi-content"><div class="value" id="valWrongNo">0</div><div class="label">चुकीचा मोबाईल नंबर</div></div></div>
         <div class="kpi-card" id="kpiNotPicked" onclick="showKpiDetails('notPicked')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg></div><div class="kpi-content"><div class="value" id="valNotPicked">0</div><div class="label">कॉल घेतला नाही</div></div></div>
         <div class="kpi-card" id="kpiOther" onclick="showKpiDetails('other')"><div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/></svg></div><div class="kpi-content"><div class="value" id="valOther">0</div><div class="label">इतर</div></div></div>
     </div>
     <div class="dashboard-grid">
         <div class="chart-card"><h3>📊 आजच्या कॉलचे प्रतिसाद वर्गीकरण</h3><div id="statusPieChart" style="width: 100%; height: 400px;"></div></div>
-        <div class="chart-card"><h3>📈 ओडी वर्गीकरण (OD Classification)</h3><div id="odClassificationChart" style="width: 100%; height: 400px;"></div></div>
+        <div class="chart-card"><h3>📋 ओडी वर्गीकरण (OD Classification)</h3><div id="odClassificationTableContainer"></div></div>
     </div>
 </div>
 <div id="customerModal" class="modal">
@@ -121,6 +130,7 @@
 
             const masterHeaders = masterDataRows.shift().map(h => String(h).trim());
             const loanNoIndex_master = masterHeaders.indexOf("लोन नंबर");
+            const customerNameIndex_master = masterHeaders.indexOf("ग्राहक चे नांव"); // <-- ADDED FOR CLICKABLE TABLE
             let unitIndex_master = masterHeaders.indexOf("युनिट नांव"); 
             if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नाव");
             const mobileIndex_master = masterHeaders.indexOf("मोबाईल नंबर");
@@ -128,10 +138,11 @@
             const amountIndex_master = masterHeaders.indexOf("एकुण");
 
             if (loanNoIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'लोन नंबर' कॉलम सापडला नाही."); return; }
+            if (customerNameIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'ग्राहक चे नांव' कॉलम सापडला नाही."); return; }
             if (unitIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'युनिट नांव' किंवा 'युनिट नाव' कॉलम सापडला नाही."); return; }
             if (mobileIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'मोबाईल नंबर' कॉलम सापडला नाही."); return; }
-            if (odDaysIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'किती दिवसांपासुन ओडी' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
-            if (amountIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'एकुण' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
+            if (odDaysIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'किती दिवसांपासुन ओडी' नावाचा कॉलम सापडला नाही."); return; }
+            if (amountIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'एकुण' नावाचा कॉलम सापडला नाही."); return; }
 
             const loanDetailsLookup = new Map();
             const uniqueUnits = new Set();
@@ -142,13 +153,16 @@
 
                  const unit = row[unitIndex_master] || 'अज्ञात';
                  const mobile = row[mobileIndex_master] || '-';
+                 const customerName = row[customerNameIndex_master] || 'अज्ञात'; // <-- ADDED
                  
                  loanDetailsLookup.set(String(loanNo).trim(), { unit, mobile });
                  if(unit !== 'अज्ञात') uniqueUnits.add(unit);
 
                  return {
                     loanNo: String(loanNo).trim(),
+                    customerName: customerName, // <-- ADDED
                     unit: unit,
+                    mobileNo: mobile, // <-- ADDED
                     odDays: parseInt(row[odDaysIndex_master], 10) || 0,
                     amount: parseFloat(String(row[amountIndex_master]).replace(/,/g, '')) || 0
                  };
@@ -174,15 +188,11 @@
                     const callerName = row[callerIndex];
                     if(callerName) uniqueCallers.add(callerName);
 
-                    // --- START OF THE FIX ---
-                    // Get the date from the sheet.
                     const rawDate = row[dateIndex];
-                    // Convert it to a string and trim any extra whitespace from the beginning or end.
                     const cleanedDate = rawDate ? String(rawDate).trim() : null;
-                    // --- END OF THE FIX ---
 
                     return {
-                        date: cleanedDate, // Use the cleaned date for comparison
+                        date: cleanedDate, 
                         caller: callerName,
                         loanNo: loanNo,
                         customerName: row[customerNameIndex],
@@ -245,18 +255,27 @@
         document.getElementById('valOther').innerText = kpiCounts.other;
 
         drawStatusPieChart(dailyFilteredData);
-        drawOdClassificationChart();
+        drawOdClassificationTable(); // <-- CHANGED from Chart to Table
     }
     
     function drawStatusPieChart(data) {
+        const pieChartDiv = document.getElementById('statusPieChart');
+        // FIX: Handle case with no daily data to avoid errors
+        if (data.length === 0) {
+            pieChartDiv.innerHTML = `<div class="empty-data-message">आजच्या तारखेसाठी कोणताही कॉल डेटा उपलब्ध नाही.</div>`;
+            return;
+        }
+
         const statusCounts = data.reduce((acc, row) => { acc[row.status] = (acc[row.status] || 0) + 1; return acc; }, {});
         const chartData = [['स्टेटस', 'संख्या'], ...Object.entries(statusCounts)];
         const options = { pieHole: 0.4, fontName: 'Noto Sans Devanagari', legend: { position: 'bottom' }, chartArea:{left:15,top:20,width:'90%',height:'75%'} };
-        const chart = new google.visualization.PieChart(document.getElementById('statusPieChart'));
-        chart.draw(google.visualization.arrayToDataTable(chartData.length > 1 ? chartData : [['Data', 0]]), options);
+        const chart = new google.visualization.PieChart(pieChartDiv);
+        chart.draw(google.visualization.arrayToDataTable(chartData), options);
     }
     
-    function drawOdClassificationChart() {
+    // NEW FUNCTION: Replaces the chart with a clickable table
+    function drawOdClassificationTable() {
+        const tableContainer = document.getElementById('odClassificationTableContainer');
         const selectedUnit = document.getElementById('unitFilter').value;
 
         const filteredMasterData = (selectedUnit === 'All')
@@ -264,7 +283,7 @@
             : allMasterData.filter(item => item.unit === selectedUnit);
 
         if (filteredMasterData.length === 0) {
-            document.getElementById('odClassificationChart').innerHTML = '<p style="text-align:center;color:grey;margin-top:50px;">या युनिटसाठी कोणताही OD डेटा उपलब्ध नाही.</p>';
+            tableContainer.innerHTML = '<p class="empty-data-message">या युनिटसाठी कोणताही OD डेटा उपलब्ध नाही.</p>';
             return;
         }
 
@@ -283,33 +302,77 @@
             else if (days >= 91) { odBuckets['91+'].count++; odBuckets['91+'].amount += amt; }
         });
 
-        const chartData = [
-            ['ओडी दिवस', 'खात्यांची संख्या', 'एकूण रक्कम'],
-            ['0-30 दिवस', odBuckets['0-30'].count, odBuckets['0-30'].amount],
-            ['31-60 दिवस', odBuckets['31-60'].count, odBuckets['31-60'].amount],
-            ['61-90 दिवस', odBuckets['61-90'].count, odBuckets['61-90'].amount],
-            ['91+ दिवस', odBuckets['91+'].count, odBuckets['91+'].amount]
-        ];
-        
-        const options = {
-            fontName: 'Noto Sans Devanagari',
-            legend: { position: 'top', maxLines: 3 },
-            chartArea: { width: '80%', height: '70%' },
-            hAxis: { title: 'ओडी दिवस गट' },
-            vAxes: {
-              0: {title: 'खात्यांची संख्या (No. A/C)', format: '0'},
-              1: {title: 'एकूण रक्कम (Amount)', format: 'short'}
-            },
-            series: {
-              0: {targetAxisIndex: 0, type: 'bars'},
-              1: {targetAxisIndex: 1, type: 'bars'}
-            },
-            bar: { groupWidth: '60%' },
-            colors: ['#007bff', '#dc3545']
-        };
+        const tableHTML = `
+            <table class="od-table">
+                <thead>
+                    <tr>
+                        <th>ओडी दिवस गट</th>
+                        <th>खात्यांची संख्या</th>
+                        <th>एकूण रक्कम (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0-30 दिवस</td>
+                        <td><span class="clickable-cell" onclick="showOdBucketDetails('0-30')">${odBuckets['0-30'].count}</span></td>
+                        <td>${odBuckets['0-30'].amount.toLocaleString('en-IN')}</td>
+                    </tr>
+                    <tr>
+                        <td>31-60 दिवस</td>
+                        <td><span class="clickable-cell" onclick="showOdBucketDetails('31-60')">${odBuckets['31-60'].count}</span></td>
+                        <td>${odBuckets['31-60'].amount.toLocaleString('en-IN')}</td>
+                    </tr>
+                    <tr>
+                        <td>61-90 दिवस</td>
+                        <td><span class="clickable-cell" onclick="showOdBucketDetails('61-90')">${odBuckets['61-90'].count}</span></td>
+                        <td>${odBuckets['61-90'].amount.toLocaleString('en-IN')}</td>
+                    </tr>
+                    <tr>
+                        <td>91+ दिवस</td>
+                        <td><span class="clickable-cell" onclick="showOdBucketDetails('91+')">${odBuckets['91+'].count}</span></td>
+                        <td>${odBuckets['91+'].amount.toLocaleString('en-IN')}</td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+        tableContainer.innerHTML = tableHTML;
+    }
 
-        const chart = new google.visualization.ColumnChart(document.getElementById('odClassificationChart'));
-        chart.draw(google.visualization.arrayToDataTable(chartData), options);
+    // NEW FUNCTION: To show customer list from the OD table
+    function showOdBucketDetails(bucketType) {
+        const selectedUnit = document.getElementById('unitFilter').value;
+        const allData = (selectedUnit === 'All') ? allMasterData : allMasterData.filter(item => item.unit === selectedUnit);
+        
+        let dataToShow = [];
+        let title = '';
+        
+        switch(bucketType) {
+            case '0-30':
+                title = '0-30 दिवस ओडी ग्राहक';
+                dataToShow = allData.filter(c => c.odDays >= 0 && c.odDays <= 30);
+                break;
+            case '31-60':
+                title = '31-60 दिवस ओडी ग्राहक';
+                dataToShow = allData.filter(c => c.odDays >= 31 && c.odDays <= 60);
+                break;
+            case '61-90':
+                title = '61-90 दिवस ओडी ग्राहक';
+                dataToShow = allData.filter(c => c.odDays >= 61 && c.odDays <= 90);
+                break;
+            case '91+':
+                title = '91+ दिवस ओडी ग्राहक';
+                dataToShow = allData.filter(c => c.odDays >= 91);
+                break;
+        }
+
+        const formattedData = dataToShow.map(c => ({
+            loanNo: c.loanNo,
+            customerName: c.customerName,
+            mobileNo: c.mobileNo,
+            rawDetails: `OD: ${c.odDays} दिवस | रक्कम: ${c.amount.toLocaleString('en-IN')}`
+        }));
+
+        displayCustomerModal(title, formattedData);
     }
 
     function showKpiDetails(kpiType) {
@@ -336,10 +399,9 @@
             tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कोणतेही रेकॉर्ड उपलब्ध नाही.</td></tr>`;
         } else {
             tableBody.innerHTML = customerData.map(c => {
-                let fullDetails = c.status || '';
-                if (c.status.includes('पेमेंटची तारीख') && c.paymentDate) fullDetails += ` (${c.paymentDate})`;
-                else if (c.status.includes('हप्ता') && c.amountPaidTo) fullDetails += ` (${c.amountPaidTo})`;
-                else if (c.rawDetails && String(c.rawDetails).trim() !== '') fullDetails += ` (${c.rawDetails})`;
+                let fullDetails = c.status || c.rawDetails || ''; // Handles both types of data
+                if (c.status && c.status.includes('पेमेंटची तारीख') && c.paymentDate) fullDetails += ` (${c.paymentDate})`;
+                else if (c.status && c.status.includes('हप्ता') && c.amountPaidTo) fullDetails += ` (${c.amountPaidTo})`;
                 return `<tr><td>${c.loanNo || '-'}</td><td>${c.customerName || '-'}</td><td>${c.mobileNo || '-'}</td><td>${fullDetails || '-'}</td></tr>`
             }).join('');
         }
