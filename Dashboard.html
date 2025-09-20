@@ -130,9 +130,9 @@
 
             const masterHeaders = masterDataRows.shift().map(h => String(h).trim());
             const loanNoIndex_master = masterHeaders.indexOf("लोन नंबर");
-            const customerNameIndex_master = masterHeaders.indexOf("ग्राहक चे नांव"); // <-- ADDED FOR CLICKABLE TABLE
+            const customerNameIndex_master = masterHeaders.indexOf("ग्राहकांचे नांव"); // <-- ADDED FOR CLICKABLE TABLE
             let unitIndex_master = masterHeaders.indexOf("युनिट नांव"); 
-            if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नाव");
+            if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नांव");
             const mobileIndex_master = masterHeaders.indexOf("मोबाईल नंबर");
             const odDaysIndex_master = masterHeaders.indexOf("किती दिवसांपासुन ओडी");
             const amountIndex_master = masterHeaders.indexOf("एकुण");
@@ -411,3 +411,4 @@
 </script>
 </body>
 </html>
+
