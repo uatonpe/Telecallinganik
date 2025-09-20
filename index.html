@@ -42,7 +42,8 @@
         
         #customerList { max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
         .customer-item { padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background-color 0.2s; position: relative; }
-        .customer-item.processed { opacity: 0.6; cursor: default; }
+        /* बदल: 'processed' क्लास आता फक्त दिसायला वेगळे दाखवेल, पण क्लिक करता येईल. */
+        .customer-item.processed { background-color: #e8f5e9; } 
         .customer-item:last-child { border-bottom: none; }
         .customer-item:not(.processed):hover { background-color: #e3f2fd; }
         .customer-item.selected { background-color: #bbdefb; }
@@ -162,8 +163,7 @@
     function populateStaffFilter() {
         const staffFilter = document.getElementById('staffFilter');
         const staffNames = [...new Set(allCustomers.map(c => c.staffName).filter(Boolean))];
-        staffNames.sort();
-        staffNames.forEach(name => {
+        staffNames.sort().forEach(name => {
             const option = document.createElement('option');
             option.value = name; option.textContent = name;
             staffFilter.appendChild(option);
@@ -177,18 +177,21 @@
         const toDays = parseInt(document.getElementById('odDaysTo').value) || Infinity;
         const onlyFollowUp = document.getElementById('followUpFilter').checked;
 
-        let filtered = allCustomers;
-        if (searchQuery) { filtered = filtered.filter(c => c.name.toLowerCase().includes(searchQuery) || (c.mobile && c.mobile.includes(searchQuery))); }
-        if (staffName) { filtered = filtered.filter(c => c.staffName === staffName); }
-        filtered = filtered.filter(c => { const days = parseInt(c.odDays); return days >= fromDays && days <= toDays; });
-        if (onlyFollowUp) {
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            filtered = filtered.filter(c => {
-                if (!c.lastPromiseDate) return false;
-                const promiseDate = new Date(c.lastPromiseDate);
-                return promiseDate <= today;
-            });
-        }
+        let filtered = allCustomers.filter(c => {
+            const searchMatch = searchQuery === '' || 
+                                c.name.toLowerCase().includes(searchQuery) || 
+                                (c.mobile && String(c.mobile).includes(searchQuery));
+            const staffMatch = !staffName || c.staffName === staffName;
+            const odDays = parseInt(c.odDays);
+            const odMatch = odDays >= fromDays && odDays <= toDays;
+            
+            let followUpMatch = true;
+            if (onlyFollowUp) {
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                followUpMatch = c.lastPromiseDate && (new Date(c.lastPromiseDate) <= today);
+            }
+            return searchMatch && staffMatch && odMatch && followUpMatch;
+        });
         displayCustomers(filtered);
     }
 
@@ -198,9 +201,20 @@
             listDiv.innerHTML = `<div style='text-align:center; padding: 20px; color: #777;'>या फिल्टरमध्ये ग्राहक नाहीत.</div>`;
             return;
         }
-        listDiv.innerHTML = customers.map(c => `
-            <div class="customer-item" data-loan-no="${c.loanNo}" onclick='selectCustomer(${JSON.stringify(c)})'>
-                <div class="name">${c.name} <span class="done-indicator hidden">✔ कॉल झाला</span></div>
+        listDiv.innerHTML = customers.map(c => {
+            // आजच्या सेशनमध्ये कॉल झाला असेल तर 'processed' क्लास जोडला जाईल.
+            const processedClass = c.calledToday ? 'processed' : '';
+
+            // मागील कॉलची माहिती दाखवण्यासाठी HTML. ही माहिती फक्त तेव्हाच दिसेल जेव्हा lastCallStatus असेल.
+            const lastCallHtml = c.lastCallStatus ? `
+                <div class="last-call-info">
+                    <strong>मागील प्रतिसाद:</strong> ${c.lastCallStatus} (${new Date(c.lastCallDate).toLocaleDateString('en-GB')})
+                </div>
+            ` : '';
+
+            return `
+            <div class="customer-item ${processedClass}" data-loan-no="${c.loanNo}" onclick='selectCustomer(${JSON.stringify(c)})'>
+                <div class="name">${c.name} <span class="done-indicator ${c.calledToday ? '' : 'hidden'}">✔ कॉल झाला</span></div>
                 <div class="details-grid">
                     <span><strong>लोन नं:</strong> ${c.loanNo}</span>
                     <span><strong>सी ऐ:</strong> ${c.staffName || 'N/A'}</span>
@@ -209,19 +223,18 @@
                     <span><strong>ओडी:</strong> ${c.odDays} दिवस</span>
                     <span><strong>रक्कम:</strong> ₹${parseInt(c.odAmount).toLocaleString('en-IN')}</span>
                 </div>
-                ${c.lastCallStatus ? `
-                <div class="last-call-info">
-                    <strong>मागील प्रतिसाद:</strong> ${c.lastCallStatus} (${new Date(c.lastCallDate).toLocaleDateString('en-GB')})
-                </div>
-                ` : ''}
-            </div>
-        `).join('');
+                ${lastCallHtml}
+            </div>`;
+        }).join('');
     }
 
     function selectCustomer(customerData) {
         document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected'));
         const el = document.querySelector(`.customer-item[data-loan-no="${customerData.loanNo}"]`);
-        if(el.classList.contains('processed')) return; // जर कॉल झाला असेल तर निवडू नका
+        
+        // ही ओळ काढली आहे जेणेकरून कॉल झालेल्या ग्राहकाला पुन्हा निवडता येईल.
+        // if(el.classList.contains('processed')) return; 
+        
         if(el) el.classList.add('selected');
 
         document.getElementById('selectedCustomerName').value = customerData.name;
@@ -272,17 +285,27 @@
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
             showNotification('माहिती यशस्वीरित्या सेव्ह झाली!', 'success');
             
-            const calledItem = document.querySelector(`.customer-item[data-loan-no="${loanNo}"]`);
-            if (calledItem) {
-                calledItem.classList.add('processed');
-                calledItem.querySelector('.done-indicator').classList.remove('hidden');
+            // बदल: नवीन कॉलची माहिती local array मध्ये लगेच अपडेट करा.
+            const customerIndex = allCustomers.findIndex(c => c.loanNo == loanNo);
+            if (customerIndex > -1) {
+                allCustomers[customerIndex].lastCallStatus = formData.status;
+                allCustomers[customerIndex].lastCallDate = new Date().toISOString(); // आजची तारीख
+                allCustomers[customerIndex].lastCallDetails = formData.details || formData.staffName;
+                allCustomers[customerIndex].lastPromiseDate = formData.paymentDate || null;
+                allCustomers[customerIndex].calledToday = true; // 'Done' मार्क दाखवण्यासाठी
             }
+            
+            // ग्राहक यादी लगेच रिफ्रेश करा, जेणेकरून नवीन माहिती दिसेल.
+            applyFilters();
+
+            // फॉर्म रिकामा करा
             document.getElementById('callLogForm').reset();
             document.getElementById('selectedCustomerName').value = '';
             document.getElementById('selectedLoanNo').value = '';
             document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected'));
             document.getElementById('previousCallContainer').classList.add('hidden');
             toggleConditionalFields();
+
         } catch (error) {
             console.error('Error submitting form:', error);
             showNotification('त्रुटी! माहिती सेव्ह झाली नाही.', 'error');
@@ -300,4 +323,3 @@
 </script>
 </body>
 </html>
-
