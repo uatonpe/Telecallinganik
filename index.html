@@ -33,7 +33,6 @@
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px; background-color: #28a745; color: white; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1001; transition: opacity 0.5s; opacity: 0; }
         .notification.show { opacity: 1; }
         .notification.error { background-color: #dc3545; }
-
         .filters-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; align-items: end; }
         .filter-group { display: flex; flex-direction: column; }
         .filter-group label { font-size: 14px; margin-bottom: 5px; }
@@ -42,8 +41,7 @@
         
         #customerList { max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
         .customer-item { padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background-color 0.2s; position: relative; }
-        /* बदल: 'processed' क्लास आता फक्त दिसायला वेगळे दाखवेल, पण क्लिक करता येईल. */
-        .customer-item.processed { background-color: #e8f5e9; } 
+        .customer-item.processed { opacity: 0.7; background-color: #f0f4c3; }
         .customer-item:last-child { border-bottom: none; }
         .customer-item:not(.processed):hover { background-color: #e3f2fd; }
         .customer-item.selected { background-color: #bbdefb; }
@@ -52,15 +50,16 @@
         .last-call-info { background-color: #fffbe6; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 10px; font-size: 12px; margin-top: 8px; color: #92400e; }
         .done-indicator { position: absolute; top: 15px; right: 15px; font-size: 14px; font-weight: 600; color: var(--success-color); }
 
-        .previous-call-details { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--warning-color); }
+        .previous-call-details { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--warning-color); max-height: 200px; overflow-y: auto;}
         .previous-call-details h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
-        .previous-call-details p { margin: 4px 0; font-size: 15px; }
+        .call-history-entry { border-bottom: 1px dashed #ccc; padding-bottom: 8px; margin-bottom: 8px; }
+        .call-history-entry:last-child { border-bottom: none; margin-bottom: 0; }
+        .call-history-entry p { margin: 2px 0; font-size: 14px; }
     </style>
 </head>
 <body>
     <header class="header"><h1>📞 टेली-कॉलिंग पॅनल (Advanced)</h1></header>
     <div class="container">
-        <!-- डावी बाजू: ग्राहक निवड -->
         <div class="card">
             <h2>🎯 ग्राहक निवडा</h2>
             <div class="filters-container">
@@ -88,15 +87,11 @@
             <div id="loader">डेटा लोड होत आहे...</div>
             <div id="customerList"></div>
         </div>
-
-        <!-- उजवी बाजू: कॉलचा तपशील भरा -->
         <div class="card">
             <h2>📝 कॉलचा तपशील</h2>
             <div id="previousCallContainer" class="previous-call-details hidden">
-                <h3>मागील कॉलचा तपशील</h3>
-                <p><strong>तारीख:</strong> <span id="prevCallDate"></span></p>
-                <p><strong>प्रतिसाद:</strong> <span id="prevCallStatus"></span></p>
-                <p><strong>अधिक माहिती:</strong> <span id="prevCallDetails"></span></p>
+                <h3>संपूर्ण कॉल हिस्ट्री</h3>
+                <div id="callHistoryContent"></div> <!-- हिस्ट्री इथे दिसेल -->
             </div>
             <form id="callLogForm">
                 <div class="form-group">
@@ -134,8 +129,8 @@
     <div id="notification" class="notification"></div>
 
 <script>
-    // <<<<<< इथे तुमची नवीन Google Apps Script URL टाका >>>>>>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxINUNRQtUNVut2d7oI5-pUA6juLu77iTBbyEQv75wQdUEq-I7qS0gPpeemmEE7Gwo/exec"; 
+    // <<<<<< इथे तुमची नवीन, Deploy केलेली Google Apps Script URL टाका >>>>>>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5QvH6CaREOHydr1aiVPtItR6TboNGjihsy1BO2N68qqu2RNQgnYBz5XHgJRduLxY/exec"; 
     let allCustomers = [];
 
     window.onload = async function() {
@@ -153,11 +148,8 @@
             document.getElementById('loader').innerText = `ग्राहक यादी लोड करण्यात अयशस्वी: ${error.message}`;
         }
         
-        document.getElementById('searchQuery').addEventListener('keyup', applyFilters);
-        document.getElementById('staffFilter').addEventListener('change', applyFilters);
-        document.getElementById('odDaysFrom').addEventListener('input', applyFilters);
-        document.getElementById('odDaysTo').addEventListener('input', applyFilters);
-        document.getElementById('followUpFilter').addEventListener('change', applyFilters);
+        ['searchQuery', 'odDaysFrom', 'odDaysTo'].forEach(id => document.getElementById(id).addEventListener('input', applyFilters));
+        ['staffFilter', 'followUpFilter'].forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
     };
 
     function populateStaffFilter() {
@@ -182,13 +174,13 @@
                                 c.name.toLowerCase().includes(searchQuery) || 
                                 (c.mobile && String(c.mobile).includes(searchQuery));
             const staffMatch = !staffName || c.staffName === staffName;
-            const odDays = parseInt(c.odDays);
-            const odMatch = odDays >= fromDays && odDays <= toDays;
+            const odMatch = (parseInt(c.odDays) || 0) >= fromDays && (parseInt(c.odDays) || 0) <= toDays;
             
             let followUpMatch = true;
             if (onlyFollowUp) {
                 const today = new Date(); today.setHours(0, 0, 0, 0);
-                followUpMatch = c.lastPromiseDate && (new Date(c.lastPromiseDate) <= today);
+                const lastCall = c.callHistory && c.callHistory.length > 0 ? c.callHistory[c.callHistory.length - 1] : null;
+                followUpMatch = lastCall && lastCall.promiseDate && (new Date(lastCall.promiseDate) <= today);
             }
             return searchMatch && staffMatch && odMatch && followUpMatch;
         });
@@ -202,15 +194,15 @@
             return;
         }
         listDiv.innerHTML = customers.map(c => {
-            // आजच्या सेशनमध्ये कॉल झाला असेल तर 'processed' क्लास जोडला जाईल.
             const processedClass = c.calledToday ? 'processed' : '';
-
-            // मागील कॉलची माहिती दाखवण्यासाठी HTML. ही माहिती फक्त तेव्हाच दिसेल जेव्हा lastCallStatus असेल.
-            const lastCallHtml = c.lastCallStatus ? `
+            let lastCallHtml = '';
+            if (c.callHistory && c.callHistory.length > 0) {
+                const lastCall = c.callHistory[c.callHistory.length - 1]; // शेवटचा कॉल
+                lastCallHtml = `
                 <div class="last-call-info">
-                    <strong>मागील प्रतिसाद:</strong> ${c.lastCallStatus} (${new Date(c.lastCallDate).toLocaleDateString('en-GB')})
-                </div>
-            ` : '';
+                    <strong>मागील प्रतिसाद:</strong> ${lastCall.status} (${new Date(lastCall.callDate).toLocaleDateString('en-GB')})
+                </div>`;
+            }
 
             return `
             <div class="customer-item ${processedClass}" data-loan-no="${c.loanNo}" onclick='selectCustomer(${JSON.stringify(c)})'>
@@ -221,7 +213,7 @@
                     <span><strong>गांव:</strong> ${c.village || 'N/A'}</span>
                     <span><strong>मोबाईल:</strong> ${c.mobile || 'N/A'}</span>
                     <span><strong>ओडी:</strong> ${c.odDays} दिवस</span>
-                    <span><strong>रक्कम:</strong> ₹${parseInt(c.odAmount).toLocaleString('en-IN')}</span>
+                    <span><strong>रक्कम:</strong> ₹${parseInt(c.odAmount || 0).toLocaleString('en-IN')}</span>
                 </div>
                 ${lastCallHtml}
             </div>`;
@@ -231,27 +223,28 @@
     function selectCustomer(customerData) {
         document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected'));
         const el = document.querySelector(`.customer-item[data-loan-no="${customerData.loanNo}"]`);
-        
-        // ही ओळ काढली आहे जेणेकरून कॉल झालेल्या ग्राहकाला पुन्हा निवडता येईल.
-        // if(el.classList.contains('processed')) return; 
-        
         if(el) el.classList.add('selected');
 
         document.getElementById('selectedCustomerName').value = customerData.name;
         document.getElementById('selectedLoanNo').value = customerData.loanNo;
         
-        const prevCallContainer = document.getElementById('previousCallContainer');
-        if (customerData.lastCallStatus) {
-            document.getElementById('prevCallDate').textContent = new Date(customerData.lastCallDate).toLocaleDateString('en-GB');
-            document.getElementById('prevCallStatus').textContent = customerData.lastCallStatus;
-            let detailsText = customerData.lastCallDetails || 'काही नाही';
-            if (customerData.lastPromiseDate) {
-                detailsText += ` | पेमेंट तारीख: ${new Date(customerData.lastPromiseDate).toLocaleDateString('en-GB')}`;
-            }
-            document.getElementById('prevCallDetails').textContent = detailsText;
-            prevCallContainer.classList.remove('hidden');
+        const historyContainer = document.getElementById('previousCallContainer');
+        const historyContent = document.getElementById('callHistoryContent');
+        
+        if (customerData.callHistory && customerData.callHistory.length > 0) {
+            historyContent.innerHTML = [...customerData.callHistory].reverse().map(call => {
+                let details = call.details ? `<p><strong>अधिक माहिती:</strong> ${call.details}</p>` : '';
+                if(call.promiseDate) details += `<p><strong>पेमेंट तारीख:</strong> ${new Date(call.promiseDate).toLocaleDateString('en-GB')}</p>`;
+                return `
+                <div class="call-history-entry">
+                    <p><strong>दिनांक:</strong> ${new Date(call.callDate).toLocaleDateString('en-GB')} | <strong>प्रतिसाद:</strong> ${call.status}</p>
+                    ${details}
+                </div>`;
+            }).join('');
+            historyContainer.classList.remove('hidden');
         } else {
-            prevCallContainer.classList.add('hidden');
+            historyContent.innerHTML = '<p>या ग्राहकाची कोणतीही कॉल हिस्ट्री नाही.</p>';
+            historyContainer.classList.remove('hidden');
         }
     }
 
@@ -285,25 +278,32 @@
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
             showNotification('माहिती यशस्वीरित्या सेव्ह झाली!', 'success');
             
-            // बदल: नवीन कॉलची माहिती local array मध्ये लगेच अपडेट करा.
-            const customerIndex = allCustomers.findIndex(c => c.loanNo == loanNo);
+            const customerIndex = allCustomers.findIndex(c => String(c.loanNo) === String(loanNo));
             if (customerIndex > -1) {
-                allCustomers[customerIndex].lastCallStatus = formData.status;
-                allCustomers[customerIndex].lastCallDate = new Date().toISOString(); // आजची तारीख
-                allCustomers[customerIndex].lastCallDetails = formData.details || formData.staffName;
-                allCustomers[customerIndex].lastPromiseDate = formData.paymentDate || null;
-                allCustomers[customerIndex].calledToday = true; // 'Done' मार्क दाखवण्यासाठी
+                // नवीन कॉलची माहिती customer च्या callHistory मध्ये जोडा
+                const newCallEntry = {
+                    callDate: new Date().toISOString(),
+                    status: formData.status,
+                    details: formData.details || formData.staffName,
+                    promiseDate: formData.paymentDate || null
+                };
+                if (!allCustomers[customerIndex].callHistory) {
+                    allCustomers[customerIndex].callHistory = [];
+                }
+                allCustomers[customerIndex].callHistory.push(newCallEntry);
+                allCustomers[customerIndex].calledToday = true;
             }
             
-            // ग्राहक यादी लगेच रिफ्रेश करा, जेणेकरून नवीन माहिती दिसेल.
             applyFilters();
+            
+            // निवडलेल्या ग्राहकाची माहिती रिफ्रेश करा
+            const updatedCustomer = allCustomers[customerIndex];
+            if(updatedCustomer) selectCustomer(updatedCustomer);
 
-            // फॉर्म रिकामा करा
             document.getElementById('callLogForm').reset();
-            document.getElementById('selectedCustomerName').value = '';
-            document.getElementById('selectedLoanNo').value = '';
-            document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('selected'));
-            document.getElementById('previousCallContainer').classList.add('hidden');
+            // निवडलेला ग्राहक तसाच ठेवा, फक्त फॉर्म रिकामा करा
+            // document.getElementById('selectedCustomerName').value = '';
+            // document.getElementById('selectedLoanNo').value = '';
             toggleConditionalFields();
 
         } catch (error) {
