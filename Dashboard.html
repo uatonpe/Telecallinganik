@@ -38,13 +38,12 @@
     .chart-card h3 { margin-top: 0; font-size: 18px; font-weight: 600; color: var(--header-bg); border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
     .modal-content { background-color: #fefefe; margin: 8% auto; padding: 20px; border-radius: 12px; width: 90%; max-width: 900px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); }
-    .modal-header { padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+    .modal-header { padding-bottom: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
     .modal-header h2 { margin: 0; color: var(--header-bg); }
-    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
     #customerListTable { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
     #customerListTable th, #customerListTable td { border: 1px solid #ddd; padding: 10px; text-align: left; }
     #customerListTable th { background-color: #f2f2f2; font-weight: 600; }
-    /* Styles for the new OD Table */
     .od-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
     .od-table th, .od-table td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; }
     .od-table th { background-color: #f8f9fa; font-weight: 600; }
@@ -52,6 +51,13 @@
     .clickable-cell { color: var(--accent-blue); text-decoration: underline; cursor: pointer; font-weight: bold; }
     .clickable-cell:hover { color: #0056b3; }
     .empty-data-message { text-align: center; color: grey; margin-top: 50px; font-size: 16px; }
+    /* Style for the new download button */
+    #downloadCsvBtn {
+        background-color: var(--accent-blue); color: white; border: none; padding: 8px 15px;
+        border-radius: 6px; font-size: 14px; cursor: pointer; font-family: 'Poppins', 'Noto Sans Devanagari';
+        transition: background-color 0.2s;
+    }
+    #downloadCsvBtn:hover { background-color: #0056b3; }
 </style>
 </head>
 <body>
@@ -81,7 +87,13 @@
 </div>
 <div id="customerModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header"><span class="close" onclick="closeModal()">&times;</span><h2 id="modalTitle">ग्राहकांची यादी</h2></div>
+        <div class="modal-header">
+            <h2 id="modalTitle">ग्राहकांची यादी</h2>
+            <div>
+                <button id="downloadCsvBtn" onclick="downloadModalDataAsCsv()">CSV डाउनलोड करा</button>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+        </div>
         <div style="max-height: 450px; overflow-y: auto;">
             <table id="customerListTable">
                 <thead><tr><th>लोन नंबर</th><th>ग्राहक</th><th>मोबाईल नंबर</th><th>स्थिती / तपशील</th></tr></thead>
@@ -101,6 +113,7 @@
     let allCallData = [];
     let allMasterData = []; 
     let dailyFilteredData = [];
+    let currentModalData = []; // NEW: To store data for the currently open modal for download
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().slice(0, 10);
@@ -130,7 +143,7 @@
 
             const masterHeaders = masterDataRows.shift().map(h => String(h).trim());
             const loanNoIndex_master = masterHeaders.indexOf("लोन नंबर");
-            const customerNameIndex_master = masterHeaders.indexOf("ग्राहकांचे नांव"); // <-- ADDED FOR CLICKABLE TABLE
+            const customerNameIndex_master = masterHeaders.indexOf("ग्राहकांचे नांव"); 
             let unitIndex_master = masterHeaders.indexOf("युनिट नांव"); 
             if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नांव");
             const mobileIndex_master = masterHeaders.indexOf("मोबाईल नंबर");
@@ -153,16 +166,16 @@
 
                  const unit = row[unitIndex_master] || 'अज्ञात';
                  const mobile = row[mobileIndex_master] || '-';
-                 const customerName = row[customerNameIndex_master] || 'अज्ञात'; // <-- ADDED
+                 const customerName = row[customerNameIndex_master] || 'अज्ञात';
                  
                  loanDetailsLookup.set(String(loanNo).trim(), { unit, mobile });
                  if(unit !== 'अज्ञात') uniqueUnits.add(unit);
 
                  return {
                     loanNo: String(loanNo).trim(),
-                    customerName: customerName, // <-- ADDED
+                    customerName: customerName, 
                     unit: unit,
-                    mobileNo: mobile, // <-- ADDED
+                    mobileNo: mobile, 
                     odDays: parseInt(row[odDaysIndex_master], 10) || 0,
                     amount: parseFloat(String(row[amountIndex_master]).replace(/,/g, '')) || 0
                  };
@@ -197,7 +210,7 @@
                         loanNo: loanNo,
                         customerName: row[customerNameIndex],
                         status: row[statusIndex] || '',
-                        rawDetails: row[detailsIndex],
+                        rawDetails: row[detailsIndex] || '',
                         amountPaidTo: row[amountPaidToIndex],
                         paymentDate: row[paymentDateIndex],
                         unit: details.unit,
@@ -255,12 +268,11 @@
         document.getElementById('valOther').innerText = kpiCounts.other;
 
         drawStatusPieChart(dailyFilteredData);
-        drawOdClassificationTable(); // <-- CHANGED from Chart to Table
+        drawOdClassificationTable();
     }
     
     function drawStatusPieChart(data) {
         const pieChartDiv = document.getElementById('statusPieChart');
-        // FIX: Handle case with no daily data to avoid errors
         if (data.length === 0) {
             pieChartDiv.innerHTML = `<div class="empty-data-message">आजच्या तारखेसाठी कोणताही कॉल डेटा उपलब्ध नाही.</div>`;
             return;
@@ -273,7 +285,6 @@
         chart.draw(google.visualization.arrayToDataTable(chartData), options);
     }
     
-    // NEW FUNCTION: Replaces the chart with a clickable table
     function drawOdClassificationTable() {
         const tableContainer = document.getElementById('odClassificationTableContainer');
         const selectedUnit = document.getElementById('unitFilter').value;
@@ -338,7 +349,6 @@
         tableContainer.innerHTML = tableHTML;
     }
 
-    // NEW FUNCTION: To show customer list from the OD table
     function showOdBucketDetails(bucketType) {
         const selectedUnit = document.getElementById('unitFilter').value;
         const allData = (selectedUnit === 'All') ? allMasterData : allMasterData.filter(item => item.unit === selectedUnit);
@@ -393,22 +403,109 @@
     }
 
     function displayCustomerModal(title, customerData) {
+        currentModalData = customerData; // Store data for the download function
         document.getElementById('modalTitle').innerText = `${title} (${customerData.length})`;
         const tableBody = document.getElementById('customerListBody');
+        
         if(customerData.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कोणतेही रेकॉर्ड उपलब्ध नाही.</td></tr>`;
         } else {
             tableBody.innerHTML = customerData.map(c => {
-                let fullDetails = c.status || c.rawDetails || ''; // Handles both types of data
-                if (c.status && c.status.includes('पेमेंटची तारीख') && c.paymentDate) fullDetails += ` (${c.paymentDate})`;
-                else if (c.status && c.status.includes('हप्ता') && c.amountPaidTo) fullDetails += ` (${c.amountPaidTo})`;
+                // MODIFIED LOGIC: To show status and details both
+                let statusPart = c.status || '';
+                let detailsPart = c.rawDetails || '';
+                let fullDetails = '';
+
+                if (c.status && c.status.includes('पेमेंटची तारीख') && c.paymentDate) {
+                    statusPart += ` (${c.paymentDate})`;
+                } else if (c.status && c.status.includes('हप्ता') && c.amountPaidTo) {
+                    statusPart += ` (${c.amountPaidTo})`;
+                }
+
+                if (statusPart && detailsPart && statusPart.trim() !== detailsPart.trim()) {
+                    fullDetails = `${statusPart} - ${detailsPart}`;
+                } else if (statusPart) {
+                    fullDetails = statusPart;
+                } else {
+                    fullDetails = detailsPart; // Primarily for OD classification details
+                }
+                
                 return `<tr><td>${c.loanNo || '-'}</td><td>${c.customerName || '-'}</td><td>${c.mobileNo || '-'}</td><td>${fullDetails || '-'}</td></tr>`
             }).join('');
         }
         document.getElementById('customerModal').style.display = 'block';
     }
+
     function closeModal() { document.getElementById('customerModal').style.display = 'none'; }
+    
+    // NEW FUNCTION: To download modal data as CSV
+    function downloadModalDataAsCsv() {
+        if (currentModalData.length === 0) {
+            alert('डाउनलोड करण्यासाठी कोणताही डेटा उपलब्ध नाही.');
+            return;
+        }
+
+        const headers = ["लोन नंबर", "ग्राहक", "मोबाईल नंबर", "स्थिती / तपशील"];
+        
+        // Helper function to format data for CSV
+        const escapeCsvCell = (cell) => {
+            if (cell === null || cell === undefined) return '';
+            let cellString = String(cell);
+            // If the cell contains a comma, double quote, or newline, wrap it in double quotes.
+            if (cellString.search(/("|,|\n)/g) >= 0) {
+                // Escape existing double quotes by doubling them
+                cellString = '"' + cellString.replace(/"/g, '""') + '"';
+            }
+            return cellString;
+        };
+
+        const rows = currentModalData.map(c => {
+            // Recreate the same fullDetails logic as in displayCustomerModal
+            let statusPart = c.status || '';
+            let detailsPart = c.rawDetails || '';
+            let fullDetails = '';
+
+            if (c.status && c.status.includes('पेमेंटची तारीख') && c.paymentDate) {
+                statusPart += ` (${c.paymentDate})`;
+            } else if (c.status && c.status.includes('हप्ता') && c.amountPaidTo) {
+                statusPart += ` (${c.amountPaidTo})`;
+            }
+
+            if (statusPart && detailsPart && statusPart.trim() !== detailsPart.trim()) {
+                fullDetails = `${statusPart} - ${detailsPart}`;
+            } else if (statusPart) {
+                fullDetails = statusPart;
+            } else {
+                fullDetails = detailsPart;
+            }
+
+            const rowData = [
+                c.loanNo || '',
+                c.customerName || '',
+                c.mobileNo || '',
+                fullDetails || ''
+            ];
+            return rowData.map(escapeCsvCell).join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        
+        // Create a blob with UTF-8 BOM for Excel compatibility with Marathi characters
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+        
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            const title = document.getElementById('modalTitle').innerText.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${title}_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
 </script>
 </body>
 </html>
-
