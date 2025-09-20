@@ -90,7 +90,7 @@
     const MASTER_DATA_SHEET_NAME = "MasterData";
 
     let allCallData = [];
-    let allMasterData = []; // To store all master data for OD chart
+    let allMasterData = []; 
     let dailyFilteredData = [];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -124,19 +124,14 @@
             let unitIndex_master = masterHeaders.indexOf("युनिट नांव"); 
             if (unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नाव");
             const mobileIndex_master = masterHeaders.indexOf("मोबाईल नंबर");
-            
-            // --- UPDATED LINES BASED ON YOUR SCREENSHOT ---
-            const odDaysIndex_master = masterHeaders.indexOf("किती दिवसांपासुन ओडी"); // Changed from "ओडी दिवस"
-            const amountIndex_master = masterHeaders.indexOf("एकुण"); // Changed from "एकूण रक्कम"
+            const odDaysIndex_master = masterHeaders.indexOf("किती दिवसांपासुन ओडी");
+            const amountIndex_master = masterHeaders.indexOf("एकुण");
 
             if (loanNoIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'लोन नंबर' कॉलम सापडला नाही."); return; }
             if (unitIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'युनिट नांव' किंवा 'युनिट नाव' कॉलम सापडला नाही."); return; }
             if (mobileIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'मोबाईल नंबर' कॉलम सापडला नाही."); return; }
-            
-            // --- UPDATED ERROR MESSAGES ---
-            if (odDaysIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'किती दिवसांपासून' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
-            if (amountIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'एकूण' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
-
+            if (odDaysIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'किती दिवसांपासुन ओडी' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
+            if (amountIndex_master === -1) { alert("त्रुटी: 'MasterData' शीटमध्ये 'एकुण' नावाचा कॉलम सापडला नाही. OD चार्टसाठी हा कॉलम आवश्यक आहे."); return; }
 
             const loanDetailsLookup = new Map();
             const uniqueUnits = new Set();
@@ -155,7 +150,7 @@
                     loanNo: String(loanNo).trim(),
                     unit: unit,
                     odDays: parseInt(row[odDaysIndex_master], 10) || 0,
-                    amount: parseFloat(String(row[amountIndex_master]).replace(/,/g, '')) || 0 // Handle commas in numbers
+                    amount: parseFloat(String(row[amountIndex_master]).replace(/,/g, '')) || 0
                  };
             }).filter(item => item !== null);
 
@@ -179,14 +174,42 @@
                     const callerName = row[callerIndex];
                     if(callerName) uniqueCallers.add(callerName);
 
+                    // --- START OF THE FIX FOR DATE FORMAT ---
+                    const rawDate = row[dateIndex];
+                    let formattedDate = null;
+                    if (rawDate) {
+                        try {
+                            const dateParts = rawDate.split(/[/.-]/); // Handles DD/MM/YYYY, DD-MM-YYYY etc.
+                            if (dateParts.length === 3) {
+                                // Assuming format is DD/MM/YYYY or similar
+                                const day = dateParts[0];
+                                const month = dateParts[1];
+                                const year = dateParts[2];
+                                // Create date in a way JavaScript understands well: YYYY-MM-DD
+                                const d = new Date(`${year}-${month}-${day}`);
+                                if (!isNaN(d.getTime())) {
+                                    formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Could not parse date:", rawDate, e);
+                        }
+                    }
+                    // --- END OF THE FIX FOR DATE FORMAT ---
+
                     return {
-                        date: row[dateIndex], caller: callerName, loanNo: loanNo,
-                        customerName: row[customerNameIndex], status: row[statusIndex] || '',
-                        rawDetails: row[detailsIndex], amountPaidTo: row[amountPaidToIndex],
+                        date: formattedDate, // Use the newly formatted date
+                        caller: callerName,
+                        loanNo: loanNo,
+                        customerName: row[customerNameIndex],
+                        status: row[statusIndex] || '',
+                        rawDetails: row[detailsIndex],
+                        amountPaidTo: row[amountPaidToIndex],
                         paymentDate: row[paymentDateIndex],
-                        unit: details.unit, mobileNo: details.mobile
+                        unit: details.unit,
+                        mobileNo: details.mobile
                     };
-                }).filter(row => row.date);
+                }).filter(row => row.date); // Filter out rows where date could not be parsed
                 populateCallerFilter(uniqueCallers);
             }
             
@@ -238,7 +261,7 @@
         document.getElementById('valOther').innerText = kpiCounts.other;
 
         drawStatusPieChart(dailyFilteredData);
-        drawOdClassificationChart(); // New chart function call
+        drawOdClassificationChart();
     }
     
     function drawStatusPieChart(data) {
@@ -342,4 +365,3 @@
 </script>
 </body>
 </html>
-
