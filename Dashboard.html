@@ -174,31 +174,15 @@
                     const callerName = row[callerIndex];
                     if(callerName) uniqueCallers.add(callerName);
 
-                    // --- START OF THE FIX FOR DATE FORMAT ---
+                    // --- START OF THE FIX ---
+                    // Get the date from the sheet.
                     const rawDate = row[dateIndex];
-                    let formattedDate = null;
-                    if (rawDate) {
-                        try {
-                            const dateParts = rawDate.split(/[/.-]/); // Handles DD/MM/YYYY, DD-MM-YYYY etc.
-                            if (dateParts.length === 3) {
-                                // Assuming format is DD/MM/YYYY or similar
-                                const day = dateParts[0];
-                                const month = dateParts[1];
-                                const year = dateParts[2];
-                                // Create date in a way JavaScript understands well: YYYY-MM-DD
-                                const d = new Date(`${year}-${month}-${day}`);
-                                if (!isNaN(d.getTime())) {
-                                    formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                                }
-                            }
-                        } catch (e) {
-                            console.error("Could not parse date:", rawDate, e);
-                        }
-                    }
-                    // --- END OF THE FIX FOR DATE FORMAT ---
+                    // Convert it to a string and trim any extra whitespace from the beginning or end.
+                    const cleanedDate = rawDate ? String(rawDate).trim() : null;
+                    // --- END OF THE FIX ---
 
                     return {
-                        date: formattedDate, // Use the newly formatted date
+                        date: cleanedDate, // Use the cleaned date for comparison
                         caller: callerName,
                         loanNo: loanNo,
                         customerName: row[customerNameIndex],
@@ -209,7 +193,7 @@
                         unit: details.unit,
                         mobileNo: details.mobile
                     };
-                }).filter(row => row.date); // Filter out rows where date could not be parsed
+                }).filter(row => row.date);
                 populateCallerFilter(uniqueCallers);
             }
             
