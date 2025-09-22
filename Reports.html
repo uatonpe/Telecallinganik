@@ -107,7 +107,6 @@
     const MASTER_DATA_SHEET_NAME = "MasterData";
 
     let allCallData = [];
-    let allMasterData = [];
 
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('reportDate').value = new Date().toISOString().slice(0, 10);
@@ -116,6 +115,7 @@
 
     async function fetchInitialData() {
         try {
+            // <-- बदल 1: दोन्ही शीटमधील सर्व आवश्यक कॉलम वाचण्यासाठी रेंज वाढवली
             const ranges = [`${LOG_SHEET_NAME}!A:I`, `${MASTER_DATA_SHEET_NAME}!A:K`];
             const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchGet?ranges=${ranges.join('&ranges=')}&key=${API_KEY}`);
             if (!response.ok) throw new Error(`Google Sheets API error: ${response.status}`);
@@ -127,20 +127,23 @@
             // Process Master Data
             const masterHeaders = masterDataRows.shift() || [];
             const loanNoIndex_master = masterHeaders.indexOf("लोन नंबर");
-            let unitIndex_master = masterHeaders.indexOf("युनिट नांव");
-            if(unitIndex_master === -1) unitIndex_master = masterHeaders.indexOf("युनिट नांव");
+            const unitIndex_master = masterHeaders.indexOf("युनिट नांव");
+            const caNameIndex_master = masterHeaders.indexOf("सी ऐ चे नांव"); // <-- बदल 2: 'सी ऐ चे नांव' कॉलमचा इंडेक्स मिळवला
 
             const loanDetailsLookup = new Map();
             const uniqueUnits = new Set();
             
-            allMasterData = masterDataRows.map(row => {
+            masterDataRows.forEach(row => {
                  const loanNo = row[loanNoIndex_master];
-                 if (!loanNo) return null;
+                 if (!loanNo) return;
                  const unit = row[unitIndex_master] || 'अज्ञात';
-                 loanDetailsLookup.set(String(loanNo).trim(), { unit });
+                 const caName = row[caNameIndex_master] || 'उपलब्ध नाही'; // <-- बदल 3: सीएचे नाव वाचले
+                 
+                 // <-- बदल 4: लोन नंबर सोबत युनिट आणि सीएचे नाव दोन्ही साठवले
+                 loanDetailsLookup.set(String(loanNo).trim(), { unit, caName }); 
+                 
                  if(unit !== 'अज्ञात') uniqueUnits.add(unit);
-                 return { loanNo: String(loanNo).trim(), unit: unit };
-            }).filter(Boolean);
+            });
             
             populateUnitFilter(uniqueUnits);
 
@@ -153,10 +156,13 @@
                 const statusIndex = callLogHeaders.indexOf("Status");
                 const detailsIndex = callLogHeaders.indexOf("Details");
                 const paymentDateIndex = callLogHeaders.indexOf("Payment Date");
+                const amountPaidToIndex = callLogHeaders.indexOf("Amount Paid To");
 
                 allCallData = callLogRows.map(row => {
                     const loanNo = row[loanNoIndex_logs];
-                    const details = loanDetailsLookup.get(String(loanNo).trim()) || { unit: 'अज्ञात' };
+                    // <-- बदल 5: लोन नंबरवरून युनिट आणि सीएचे नाव दोन्ही मिळवले
+                    const details = loanDetailsLookup.get(String(loanNo).trim()) || { unit: 'अज्ञात', caName: 'उपलब्ध नाही' };
+                    
                     return {
                         date: String(row[dateIndex] || '').trim(),
                         loanNo: loanNo,
@@ -164,7 +170,9 @@
                         status: row[statusIndex] || 'इतर',
                         details: row[detailsIndex] || '',
                         paymentDate: row[paymentDateIndex] || '',
-                        unit: details.unit
+                        amountPaidTo: row[amountPaidToIndex] || '',
+                        unit: details.unit,
+                        caName: details.caName // <-- बदल 6: सीएचे नाव कॉल डेटासोबत जोडले
                     };
                 }).filter(row => row.date);
             }
@@ -208,24 +216,20 @@
         reportContainer.style.display = 'block';
         document.getElementById('downloadPdfBtn').style.display = 'inline-block';
 
-        // --- KPI Calculations ---
         const totalCalls = reportData.length;
         const ptp = reportData.filter(r => r.status.includes('पेमेंटची तारीख'));
         const paidToStaff = reportData.filter(r => r.status.includes('हप्ता'));
         const notPicked = reportData.filter(r => r.status === 'कॉल घेतला नाही');
         const wrongNo = reportData.filter(r => r.status === 'चुकीचा मोबाईल नंबर');
         const others = reportData.filter(r => !ptp.includes(r) && !paidToStaff.includes(r) && !notPicked.includes(r) && !wrongNo.includes(r));
-        
         const successfulCalls = ptp.length + paidToStaff.length;
         const unsuccessfulCalls = notPicked.length + wrongNo.length;
 
-        // --- Build HTML ---
         let html = `
             <div class="report-header">
                 <h1>दैनिक कॉलिंग परफॉर्मन्स रिपोर्ट</h1>
                 <p><strong>युनिट:</strong> ${selectedUnit} | <strong>तारीख:</strong> ${new Date(selectedDate).toLocaleDateString('mr-IN')}</p>
             </div>
-
             <div class="report-section">
                 <h2>सारांश (Summary)</h2>
                 <div class="summary-grid">
@@ -234,7 +238,6 @@
                     <div class="summary-item" id="unsuccessfulCalls"><div class="value">${unsuccessfulCalls}</div><div class="label">अयशस्वी कॉल्स</div></div>
                 </div>
             </div>
-
             <div class="report-section">
                 <h2>विश्लेषण (Analysis)</h2>
                 <div id="analysis-text">
@@ -248,10 +251,11 @@
             </div>`;
             
         // --- Detailed Tables ---
-        html += createDetailTable('पेमेंटची तारीख निश्चित (PTP)', ['ग्राहक', 'लोन नंबर', 'पेमेंटची तारीख'], ptp, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.paymentDate || '-'}</td>`);
-        html += createDetailTable('हप्ता स्टाफकडे भरला', ['ग्राहक', 'लोन नंबर', 'तपशील'], paidToStaff, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.details || '-'}</td>`);
-        html += createDetailTable('अनुत्पादक कॉल्स (Unproductive Calls)', ['ग्राहक', 'लोन नंबर', 'स्थिती'], [...notPicked, ...wrongNo], (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.status}</td>`);
-        html += createDetailTable('इतर कॉल्स', ['ग्राहक', 'लोन नंबर', 'स्थिती', 'तपशील'], others, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.status}</td><td>${item.details || '-'}</td>`);
+        // <-- बदल 7: प्रत्येक टेबलमध्ये 'सीएचे नाव' आणि संबंधित डेटा जोडला
+        html += createDetailTable('पेमेंटची तारीख निश्चित (PTP)', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'पेमेंटची तारीख'], ptp, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.paymentDate || '-'}</td>`);
+        html += createDetailTable('हप्ता स्टाफकडे भरला', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'तपशील'], paidToStaff, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.amountPaidTo || '-'}</td>`);
+        html += createDetailTable('अनुत्पादक कॉल्स (Unproductive Calls)', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'स्थिती'], [...notPicked, ...wrongNo], (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.status}</td>`);
+        html += createDetailTable('इतर कॉल्स', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'स्थिती', 'तपशील'], others, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.status}</td><td>${item.details || '-'}</td>`);
         
         reportContainer.innerHTML = html;
     }
@@ -289,7 +293,6 @@
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
 
-        // html2pdf library uses Promises
         html2pdf().set(opt).from(element).save();
     }
 </script>
