@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- !! नवीन बदल येथे आहे !! -->
+<!-- !! डिझाइनमधील सर्व मोठे बदल येथे आहेत !! -->
 <style>
     :root { 
         --primary-bg: #f4f7fc; 
@@ -30,15 +30,12 @@
     .report-header { text-align: center; border-bottom: 2px solid var(--header-bg); padding-bottom: 15px; margin-bottom: 25px; }
     .report-section { margin-bottom: 30px; }
     .report-section h2 { font-size: 18px; font-weight: 600; color: var(--primary-text); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 15px; }
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; text-align: center; }
-    .summary-item { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef; }
-    .summary-item .value { font-size: 28px; font-weight: 700; }
     .detail-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .detail-table th, .detail-table td { border: 1px solid var(--border-color); padding: 10px; text-align: left; vertical-align: middle; }
     .detail-table th { background-color: #f2f2f2; font-weight: 600; }
     .empty-message { text-align: center; color: grey; padding: 20px; }
     
-    /* अभिप्राय (Feedback) साठी सुधारित स्टाईल */
+    /* अभिप्राय (Feedback) साठी नवीन आणि सुधारित स्टाईल */
     .feedback-header {
         color: var(--header-bg); /* फक्त शब्दाचा रंग निळा */
         text-align: center;
@@ -47,6 +44,7 @@
         display: flex; 
         align-items: center; 
         gap: 5px;
+        min-width: 250px; /* रुंदी कमी होऊ नये म्हणून */
     }
     .feedback-cell input { 
         flex-grow: 1; 
@@ -96,8 +94,8 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ2nItJWbioX_YHFqYc50z6p2sV-BZlmwsUplvGtJSEPHs5GkLwJWaJjcfPmtIVZ8/exec"; // ही URL बदलू नका
-    const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ"; // तुमचा API Key
-    const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8"; // तुमचा Spreadsheet ID
+    const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ";
+    const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8";
     
     const LOG_SHEET_NAME = "CallLogs";
     const MASTER_DATA_SHEET_NAME = "MasterData";
@@ -110,7 +108,7 @@
         fetchInitialData();
     });
 
-    // हा संपूर्ण fetchInitialData फंक्शन पूर्वीप्रमाणेच आहे (यात कोणताही बदल नाही)
+    // JavaScript मध्ये कोणताही मोठा बदल नाही, तो पूर्वीप्रमाणेच काम करतो.
     async function fetchInitialData() {
         document.getElementById('loader').innerText = 'डेटा लोड होत आहे, कृपया थांबा...';
         try {
@@ -151,13 +149,7 @@
                     const loanNo = row[loanNoIndex_update];
                     const remark = row[remarkIndex_update] || '';
                     if (date && loanNo) {
-                        // तारीख फॉरमॅटिंगची समस्या टाळण्यासाठी
-                        let formattedDate = date;
-                        if (date.includes('/')) {
-                           const parts = date.split('/');
-                           formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                        }
-                        const key = `${formattedDate}_${String(loanNo).trim()}`;
+                        const key = `${date}_${String(loanNo).trim()}`;
                         remarksLookup.set(key, remark);
                     }
                 });
@@ -273,9 +265,7 @@
         }
     }
 
-    // !! नवीन बदल !! - CSS क्लास जोडला
     function createDetailTable(title, headers, data, rowBuilder) {
-        // अभिप्राय कॉलमच्या हेडरला विशिष्ट क्लास दिला
         headers[headers.length - 1] = `<span class="feedback-header no-print">${headers[headers.length - 1]}</span>`;
 
         let tableHtml = `<div class="report-section"><h2>${title} (${data.length})</h2>`;
