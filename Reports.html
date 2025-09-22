@@ -7,13 +7,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+<!-- !! नवीन बदल येथे आहे !! -->
 <style>
-    :root { --primary-bg: #f4f7fc; --card-bg: #ffffff; --header-bg: #0d47a1; --primary-text: #333; --secondary-text: #555; --border-color: #dee2e6; }
+    :root { 
+        --primary-bg: #f4f7fc; 
+        --card-bg: #ffffff; 
+        --header-bg: #0d47a1; 
+        --primary-text: #333; 
+        --secondary-text: #555; 
+        --border-color: #dee2e6;
+        --success-color: #28a745;
+        --success-hover-color: #218838;
+    }
     body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background-color: var(--primary-bg); margin: 0; color: var(--primary-text); }
     .no-print { background: var(--header-bg); padding: 15px 25px; color: white; display: flex; align-items: center; justify-content: center; gap: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-wrap: wrap; }
     .filters-container label { font-size: 14px; margin-right: 8px; }
     .filters-container input, .filters-container select, .filters-container button { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 14px; }
-    .filters-container button { background-color: #28a745; color: white; cursor: pointer; border-color: #28a745; }
+    .filters-container button { background-color: var(--success-color); color: white; cursor: pointer; border-color: var(--success-color); }
     #downloadPdfBtn { background-color: #dc3545; color: white; cursor: pointer; border-color: #dc3545; }
     #loader { text-align: center; padding: 40px; font-size: 18px; color: var(--secondary-text); }
     .report-container { max-width: 90%; margin: 30px auto; background: var(--card-bg); padding: 25px 40px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border-radius: 8px; }
@@ -24,12 +34,50 @@
     .summary-item { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef; }
     .summary-item .value { font-size: 28px; font-weight: 700; }
     .detail-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .detail-table th, .detail-table td { border: 1px solid var(--border-color); padding: 10px; text-align: left; }
+    .detail-table th, .detail-table td { border: 1px solid var(--border-color); padding: 10px; text-align: left; vertical-align: middle; }
     .detail-table th { background-color: #f2f2f2; font-weight: 600; }
     .empty-message { text-align: center; color: grey; padding: 20px; }
-    .feedback-cell { display: flex; align-items: center; }
-    .feedback-cell input { flex-grow: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
-    .feedback-cell button { padding: 6px 10px; margin-left: 5px; font-size: 12px; white-space: nowrap; }
+    
+    /* अभिप्राय (Feedback) साठी सुधारित स्टाईल */
+    .feedback-header {
+        color: var(--header-bg); /* फक्त शब्दाचा रंग निळा */
+        text-align: center;
+    }
+    .feedback-cell { 
+        display: flex; 
+        align-items: center; 
+        gap: 5px;
+    }
+    .feedback-cell input { 
+        flex-grow: 1; 
+        padding: 8px; 
+        border: 1px solid #ccc; 
+        border-radius: 4px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .feedback-cell input:focus {
+        border-color: var(--header-bg);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.2);
+    }
+    .feedback-cell button { 
+        padding: 8px 12px; 
+        font-size: 12px; 
+        white-space: nowrap;
+        background-color: var(--success-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .feedback-cell button:hover {
+        background-color: var(--success-hover-color);
+    }
+    .feedback-cell button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
 </style>
 </head>
 <body>
@@ -47,12 +95,9 @@
 <div id="report-content" class="report-container" style="display:none;"></div>
 
 <script>
-    // <-- !! सर्वात महत्त्वाचा बदल !! -->
-    // पायरी १ मध्ये मिळालेली URL येथे पेस्ट करा
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ2nItJWbioX_YHFqYc50z6p2sV-BZlmwsUplvGtJSEPHs5GkLwJWaJjcfPmtIVZ8/exec";
-
-    const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ";
-    const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ2nItJWbioX_YHFqYc50z6p2sV-BZlmwsUplvGtJSEPHs5GkLwJWaJjcfPmtIVZ8/exec"; // ही URL बदलू नका
+    const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ"; // तुमचा API Key
+    const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8"; // तुमचा Spreadsheet ID
     
     const LOG_SHEET_NAME = "CallLogs";
     const MASTER_DATA_SHEET_NAME = "MasterData";
@@ -65,7 +110,7 @@
         fetchInitialData();
     });
 
-    // हा संपूर्ण fetchInitialData फंक्शन पूर्वीप्रमाणेच आहे
+    // हा संपूर्ण fetchInitialData फंक्शन पूर्वीप्रमाणेच आहे (यात कोणताही बदल नाही)
     async function fetchInitialData() {
         document.getElementById('loader').innerText = 'डेटा लोड होत आहे, कृपया थांबा...';
         try {
@@ -106,7 +151,13 @@
                     const loanNo = row[loanNoIndex_update];
                     const remark = row[remarkIndex_update] || '';
                     if (date && loanNo) {
-                        const key = `${date}_${String(loanNo).trim()}`;
+                        // तारीख फॉरमॅटिंगची समस्या टाळण्यासाठी
+                        let formattedDate = date;
+                        if (date.includes('/')) {
+                           const parts = date.split('/');
+                           formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                        }
+                        const key = `${formattedDate}_${String(loanNo).trim()}`;
                         remarksLookup.set(key, remark);
                     }
                 });
@@ -153,7 +204,6 @@
     }
 
     function generateReport() {
-        // ... (हा संपूर्ण फंक्शन पूर्वीप्रमाणेच आहे, फक्त createDetailTable च्या कॉलमध्ये बदल आहे)
         const selectedDate = document.getElementById('reportDate').value;
         const selectedUnit = document.getElementById('unitFilter').value;
         if (!selectedDate) { alert("कृपया तारीख निवडा."); return; }
@@ -175,10 +225,8 @@
         const wrongNo = reportData.filter(r => r.status === 'चुकीचा मोबाईल नंबर');
         const others = reportData.filter(r => !ptp.includes(r) && !paidToStaff.includes(r) && !notPicked.includes(r) && !wrongNo.includes(r));
         
-        let html = `<div class="report-header"><h1>दैनिक कॉलिंग परफॉर्मन्स रिपोर्ट</h1><p><strong>युनिट:</strong> ${selectedUnit} | <strong>तारीख:</strong> ${new Date(selectedDate).toLocaleDateString('mr-IN')}</p></div>`;
+        let html = `<div class="report-header"><h1>दैनिक कॉलिंग परफॉर्मन्स रिपोर्ट</h1><p><strong>युनिट:</strong> ${selectedUnit} | <strong>तारीख:</strong> ${new Date(selectedDate).toLocaleDateString('mr-IN', { timeZone: 'UTC' })}</p></div>`;
         
-        // <-- !! नवीन बदल !! -->
-        // createDetailTable फंक्शनच्या कॉलमध्ये नवीन कॉलम आणि अभिप्राय इनपुट जोडले
         html += createDetailTable('पेमेंटची तारीख निश्चित (PTP)', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'पेमेंटची तारीख', 'अभिप्राय'], ptp, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.paymentDate || '-'}</td>${createFeedbackCell(item)}`);
         html += createDetailTable('हप्ता स्टाफकडे भरला', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'तपशील', 'अभिप्राय'], paidToStaff, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.amountPaidTo || '-'}</td>${createFeedbackCell(item)}`);
         html += createDetailTable('अनुत्पादक कॉल्स', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'स्थिती', 'अभिप्राय'], [...notPicked, ...wrongNo], (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.status}</td>${createFeedbackCell(item)}`);
@@ -187,8 +235,6 @@
         reportContainer.innerHTML = html;
     }
     
-    // <-- !! नवीन बदल !! -->
-    // हा नवीन फंक्शन अभिप्राय देण्यासाठी इनपुट बॉक्स आणि बटण तयार करतो
     function createFeedbackCell(item) {
         return `
             <td class="feedback-cell no-print">
@@ -197,49 +243,40 @@
             </td>`;
     }
 
-    // <-- !! नवीन बदल !! -->
-    // हा नवीन फंक्शन 'सेव्ह' बटण दाबल्यावर Apps Script ला डेटा पाठवतो
     async function saveRemark(date, loanNumber) {
         const remarkInput = document.getElementById(`remark-${loanNumber}`);
         const remark = remarkInput.value.trim();
         const button = remarkInput.nextElementSibling;
+        if (!remark) { alert("कृपया अभिप्राय लिहा."); return; }
 
-        if (!remark) {
-            alert("कृपया अभिप्राय लिहा.");
-            return;
-        }
-
-        button.textContent = 'सेव्ह होत आहे...';
+        button.textContent = 'सेव्ह...';
         button.disabled = true;
 
         try {
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'cors',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Keep as text/plain for simple proxy
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ date, loanNumber, remark })
             });
-
             const result = await response.json();
-
             if (result.status === "success") {
                 alert(result.message);
-                remarkInput.style.backgroundColor = '#d4edda'; // हिरवा रंग
-            } else {
-                throw new Error(result.message);
-            }
+                remarkInput.style.backgroundColor = '#d4edda';
+            } else { throw new Error(result.message); }
         } catch (error) {
-            alert("अभिप्राय सेव्ह करताना त्रुटी आली: " + error.message);
-            remarkInput.style.backgroundColor = '#f8d7da'; // लाल रंग
+            alert("अभिप्राय सेव्ह करताना त्रुटी: " + error.message);
+            remarkInput.style.backgroundColor = '#f8d7da';
         } finally {
             button.textContent = 'सेव्ह';
             button.disabled = false;
         }
     }
 
+    // !! नवीन बदल !! - CSS क्लास जोडला
     function createDetailTable(title, headers, data, rowBuilder) {
-        // PDF मध्ये 'अभिप्राय' कॉलम दिसू नये म्हणून no-print क्लास जोडला
-        headers[headers.length - 1] = `<span class="no-print">${headers[headers.length - 1]}</span>`;
+        // अभिप्राय कॉलमच्या हेडरला विशिष्ट क्लास दिला
+        headers[headers.length - 1] = `<span class="feedback-header no-print">${headers[headers.length - 1]}</span>`;
 
         let tableHtml = `<div class="report-section"><h2>${title} (${data.length})</h2>`;
         if (data.length === 0) {
@@ -258,10 +295,9 @@
             filename: `Calling_Report_${document.getElementById('unitFilter').value}_${document.getElementById('reportDate').value}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } // Changed to landscape for more space
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
         }).save();
     }
-
 </script>
 </body>
 </html>
