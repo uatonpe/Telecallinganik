@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- !! डिझाइनमधील सर्व मोठे बदल येथे आहेत !! -->
+<!-- !! व्यावसायिक डिझाइनसाठी CSS येथे आहे !! -->
 <style>
     :root { 
         --primary-bg: #f4f7fc; 
@@ -35,16 +35,17 @@
     .detail-table th { background-color: #f2f2f2; font-weight: 600; }
     .empty-message { text-align: center; color: grey; padding: 20px; }
     
-    /* अभिप्राय (Feedback) साठी नवीन आणि सुधारित स्टाईल */
+    /* अभिप्राय (Feedback) साठी नवीन आणि व्यावसायिक स्टाईल */
     .feedback-header {
-        color: var(--header-bg); /* फक्त शब्दाचा रंग निळा */
+        color: var(--header-bg);
         text-align: center;
+        font-weight: 600;
     }
     .feedback-cell { 
         display: flex; 
         align-items: center; 
         gap: 5px;
-        min-width: 250px; /* रुंदी कमी होऊ नये म्हणून */
+        min-width: 250px;
     }
     .feedback-cell input { 
         flex-grow: 1; 
@@ -93,7 +94,7 @@
 <div id="report-content" class="report-container" style="display:none;"></div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ2nItJWbioX_YHFqYc50z6p2sV-BZlmwsUplvGtJSEPHs5GkLwJWaJjcfPmtIVZ8/exec"; // ही URL बदलू नका
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ2nItJWbioX_YHFqYc50z6p2sV-BZlmwsUplvGtJSEPHs5GkLwJWaJjcfPmtIVZ8/exec"; // कृपया तुमची अचूक URL येथे टाका
     const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ";
     const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8";
     
@@ -108,7 +109,6 @@
         fetchInitialData();
     });
 
-    // JavaScript मध्ये कोणताही मोठा बदल नाही, तो पूर्वीप्रमाणेच काम करतो.
     async function fetchInitialData() {
         document.getElementById('loader').innerText = 'डेटा लोड होत आहे, कृपया थांबा...';
         try {
@@ -266,13 +266,16 @@
     }
 
     function createDetailTable(title, headers, data, rowBuilder) {
-        headers[headers.length - 1] = `<span class="feedback-header no-print">${headers[headers.length - 1]}</span>`;
+        headers[headers.length - 1] = `<th class="feedback-header no-print">${headers[headers.length - 1]}</th>`;
 
         let tableHtml = `<div class="report-section"><h2>${title} (${data.length})</h2>`;
         if (data.length === 0) {
             tableHtml += `<div class="empty-message">या प्रकारात कोणताही डेटा उपलब्ध नाही.</div>`;
         } else {
-            tableHtml += `<table class="detail-table"><thead><tr><th>${headers.join('</th><th>')}</th></tr></thead><tbody>${data.map(item => `<tr>${rowBuilder(item)}</tr>`).join('')}</tbody></table>`;
+            let thString = headers.slice(0, -1).map(h => `<th>${h}</th>`).join('');
+            thString += headers[headers.length - 1]; // शेवटचा हेडर वेगळ्या पद्धतीने जोडला
+
+            tableHtml += `<table class="detail-table"><thead><tr>${thString}</tr></thead><tbody>${data.map(item => `<tr>${rowBuilder(item)}</tr>`).join('')}</tbody></table>`;
         }
         tableHtml += `</div>`;
         return tableHtml;
