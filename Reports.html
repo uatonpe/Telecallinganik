@@ -96,7 +96,7 @@
         border-radius: 8px;
         box-shadow: 0 4px 12px var(--shadow-color);
         padding: 20px 25px;
-        overflow: hidden; /* To contain the table */
+        overflow-x: auto; /* For smaller screens */
     }
     .report-section h2 { 
         font-size: 18px; 
@@ -133,7 +133,6 @@
     }
     .empty-message { text-align: center; color: grey; padding: 20px; }
     
-    /* अभिप्राय (Feedback) साठी व्यावसायिक स्टाईल */
     .feedback-cell textarea { 
         width: 100%;
         flex-grow: 1; 
@@ -142,9 +141,9 @@
         border-radius: 4px;
         font-family: inherit;
         font-size: 14px;
-        resize: none; /* Disable manual resize */
-        overflow-y: hidden; /* Hide scrollbar */
-        min-height: 38px; /* Same as button */
+        resize: none;
+        overflow-y: hidden;
+        min-height: 38px;
         transition: border-color 0.2s, box-shadow 0.2s;
     }
     .feedback-cell textarea:focus {
@@ -172,22 +171,36 @@
     .feedback-input-container button:hover { background-color: var(--success-hover-color); }
     .feedback-input-container button:disabled { background-color: #cccccc; cursor: not-allowed; }
     .feedback-print-view {
-        display: none; /* Hide by default on screen */
-        white-space: pre-wrap; /* Preserve line breaks */
+        display: none;
+        white-space: pre-wrap;
     }
 
-    /* प्रिंटसाठी स्टाईल */
+    /* प्रिंटसाठी सुधारित स्टाईल */
     @media print {
         body { background-color: #fff; font-size: 10pt; }
         .no-print { display: none !important; }
         .report-container { max-width: 100%; margin: 0; padding: 0; box-shadow: none; }
-        .report-section { box-shadow: none; border: 1px solid #ccc; padding: 15px; page-break-inside: avoid; }
+        .report-section { box-shadow: none; border: 1px solid #ccc; padding: 15px; page-break-inside: avoid; overflow: hidden; }
         .report-header h1 { font-size: 18pt; }
         .report-header p { font-size: 12pt; }
-        .detail-table { font-size: 9pt; }
-        .detail-table th, .detail-table td { padding: 6px 8px; }
+        
+        .detail-table { 
+            font-size: 9pt; 
+            table-layout: fixed; /* <<-- हा महत्त्वाचा बदल आहे */
+            width: 100%;
+        }
+        .detail-table th, .detail-table td { 
+            padding: 8px; 
+            word-wrap: break-word; /* <<-- हा दुसरा महत्त्वाचा बदल आहे */
+        }
+        
         .feedback-input-container { display: none !important; }
-        .feedback-print-view { display: block !important; }
+        .feedback-print-view { 
+            display: block !important; 
+            white-space: pre-wrap; /* Preserve line breaks */
+            word-break: break-word; /* Ensure wrapping */
+        }
+        
         @page {
             size: A4 landscape;
             margin: 0.5in;
@@ -341,18 +354,15 @@
         html += createDetailTable('इतर कॉल्स', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'स्थिती', 'तपशील', 'अभिप्राय'], others, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.status}</td><td>${item.details || '-'}</td>${createFeedbackCell(item)}`);
         
         reportContainer.innerHTML = html;
-        // सर्व textareas चा आकार त्यांच्या मजकुरानुसार सेट करा
         document.querySelectorAll('.feedback-cell textarea').forEach(ta => autoResize(ta));
     }
     
-    // हे फंक्शन textarea चा आकार आपोआप वाढवते
     function autoResize(textarea) {
         textarea.style.height = 'auto';
         textarea.style.height = (textarea.scrollHeight) + 'px';
     }
 
     function createFeedbackCell(item) {
-        // HTML मध्ये XSS टाळण्यासाठी मजकूर एन्कोड करणे
         const remarkText = item.fieldRemark.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         return `
             <td class="feedback-cell">
@@ -384,7 +394,6 @@
             if (result.status === "success") {
                 alert(result.message);
                 remarkInput.style.backgroundColor = '#d4edda';
-                // प्रिंटसाठीची माहितीसुद्धा अपडेट करा
                 const printView = remarkInput.closest('.feedback-cell').querySelector('.feedback-print-view');
                 if (printView) {
                     printView.textContent = remark;
@@ -423,7 +432,7 @@
             margin: 0.5,
             filename: filename,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
         }).save();
     }
