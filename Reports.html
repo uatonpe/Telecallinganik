@@ -7,75 +7,191 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- !! व्यावसायिक डिझाइनसाठी CSS येथे आहे !! -->
+<!-- !! व्यावसायिक आणि सुधारित डिझाइनसाठी CSS !! -->
 <style>
     :root { 
-        --primary-bg: #f4f7fc; 
+        --primary-bg: #f0f2f5; 
         --card-bg: #ffffff; 
-        --header-bg: #0d47a1; 
-        --primary-text: #333; 
-        --secondary-text: #555; 
-        --border-color: #dee2e6;
+        --header-bg: #005A9E; 
+        --primary-text: #1c1c1c; 
+        --secondary-text: #5a5a5a; 
+        --border-color: #e0e0e0;
+        --header-text-color: #ffffff;
         --success-color: #28a745;
         --success-hover-color: #218838;
+        --danger-color: #dc3545;
+        --shadow-color: rgba(0, 0, 0, 0.08);
     }
-    body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background-color: var(--primary-bg); margin: 0; color: var(--primary-text); }
-    .no-print { background: var(--header-bg); padding: 15px 25px; color: white; display: flex; align-items: center; justify-content: center; gap: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-wrap: wrap; }
-    .filters-container label { font-size: 14px; margin-right: 8px; }
-    .filters-container input, .filters-container select, .filters-container button { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 14px; }
-    .filters-container button { background-color: var(--success-color); color: white; cursor: pointer; border-color: var(--success-color); }
-    #downloadPdfBtn { background-color: #dc3545; color: white; cursor: pointer; border-color: #dc3545; }
-    #loader { text-align: center; padding: 40px; font-size: 18px; color: var(--secondary-text); }
-    .report-container { max-width: 90%; margin: 30px auto; background: var(--card-bg); padding: 25px 40px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border-radius: 8px; }
-    .report-header { text-align: center; border-bottom: 2px solid var(--header-bg); padding-bottom: 15px; margin-bottom: 25px; }
-    .report-section { margin-bottom: 30px; }
-    .report-section h2 { font-size: 18px; font-weight: 600; color: var(--primary-text); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 15px; }
-    .detail-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .detail-table th, .detail-table td { border: 1px solid var(--border-color); padding: 10px; text-align: left; vertical-align: middle; }
-    .detail-table th { background-color: #f2f2f2; font-weight: 600; }
-    .empty-message { text-align: center; color: grey; padding: 20px; }
-    
-    /* अभिप्राय (Feedback) साठी नवीन आणि व्यावसायिक स्टाईल */
-    .feedback-header {
-        color: var(--header-bg);
-        text-align: center;
-        font-weight: 600;
+    body { 
+        font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; 
+        background-color: var(--primary-bg); 
+        margin: 0; 
+        color: var(--primary-text); 
     }
-    .feedback-cell { 
+    .no-print {
+        /* This class will be hidden during printing */
+    }
+    .filters-container { 
+        background: var(--card-bg); 
+        padding: 15px 25px; 
+        color: var(--primary-text); 
         display: flex; 
         align-items: center; 
-        gap: 5px;
-        min-width: 250px;
+        justify-content: center; 
+        gap: 20px; 
+        box-shadow: 0 2px 8px var(--shadow-color); 
+        flex-wrap: wrap; 
+        position: sticky;
+        top: 0;
+        z-index: 1000;
     }
-    .feedback-cell input { 
+    .filters-container label { font-size: 14px; font-weight: 500; }
+    .filters-container input, .filters-container select, .filters-container button { 
+        padding: 8px 12px; 
+        border-radius: 6px; 
+        border: 1px solid var(--border-color); 
+        font-family: inherit; 
+        font-size: 14px; 
+        transition: all 0.2s ease-in-out;
+    }
+    .filters-container input:focus, .filters-container select:focus {
+        border-color: var(--header-bg);
+        box-shadow: 0 0 0 2px rgba(0, 90, 158, 0.2);
+        outline: none;
+    }
+    .filters-container button { 
+        background-color: var(--header-bg); 
+        color: var(--header-text-color); 
+        cursor: pointer; 
+        border-color: var(--header-bg); 
+        font-weight: 500;
+    }
+    .filters-container button:hover {
+        background-color: #00487d;
+    }
+    #downloadPdfBtn { background-color: var(--danger-color); border-color: var(--danger-color); }
+    #loader { text-align: center; padding: 50px; font-size: 18px; color: var(--secondary-text); }
+    .report-container { 
+        max-width: 95%; 
+        margin: 30px auto; 
+        padding: 15px;
+    }
+    .report-header { 
+        text-align: center; 
+        margin-bottom: 30px; 
+    }
+    .report-header h1 {
+        font-size: 24px;
+        color: var(--header-bg);
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    .report-header p {
+        font-size: 16px;
+        color: var(--secondary-text);
+    }
+    .report-section { 
+        margin-bottom: 25px;
+        background: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        padding: 20px 25px;
+        overflow: hidden; /* To contain the table */
+    }
+    .report-section h2 { 
+        font-size: 18px; 
+        font-weight: 600; 
+        color: var(--primary-text); 
+        padding-bottom: 10px; 
+        margin: -20px -25px 20px -25px;
+        padding: 15px 25px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .detail-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: 14px; 
+    }
+    .detail-table th, .detail-table td { 
+        padding: 12px 15px; 
+        text-align: left; 
+        vertical-align: middle; 
+        border-bottom: 1px solid var(--border-color);
+    }
+    .detail-table thead th { 
+        background-color: #f2f2f2; 
+        font-weight: 600; 
+        color: var(--primary-text);
+        border-bottom-width: 2px;
+    }
+    .detail-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .detail-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+    .empty-message { text-align: center; color: grey; padding: 20px; }
+    
+    /* अभिप्राय (Feedback) साठी व्यावसायिक स्टाईल */
+    .feedback-cell textarea { 
+        width: 100%;
         flex-grow: 1; 
         padding: 8px; 
         border: 1px solid #ccc; 
         border-radius: 4px;
+        font-family: inherit;
+        font-size: 14px;
+        resize: none; /* Disable manual resize */
+        overflow-y: hidden; /* Hide scrollbar */
+        min-height: 38px; /* Same as button */
         transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .feedback-cell input:focus {
+    .feedback-cell textarea:focus {
         border-color: var(--header-bg);
         outline: none;
         box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.2);
     }
-    .feedback-cell button { 
-        padding: 8px 12px; 
-        font-size: 12px; 
-        white-space: nowrap;
+    .feedback-input-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        min-width: 300px;
+    }
+    .feedback-input-container button { 
+        padding: 8px 15px; 
+        font-size: 14px; 
         background-color: var(--success-color);
         color: white;
         border: none;
         border-radius: 4px;
         cursor: pointer;
         transition: background-color 0.2s;
+        height: 38px;
     }
-    .feedback-cell button:hover {
-        background-color: var(--success-hover-color);
+    .feedback-input-container button:hover { background-color: var(--success-hover-color); }
+    .feedback-input-container button:disabled { background-color: #cccccc; cursor: not-allowed; }
+    .feedback-print-view {
+        display: none; /* Hide by default on screen */
+        white-space: pre-wrap; /* Preserve line breaks */
     }
-    .feedback-cell button:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
+
+    /* प्रिंटसाठी स्टाईल */
+    @media print {
+        body { background-color: #fff; font-size: 10pt; }
+        .no-print { display: none !important; }
+        .report-container { max-width: 100%; margin: 0; padding: 0; box-shadow: none; }
+        .report-section { box-shadow: none; border: 1px solid #ccc; padding: 15px; page-break-inside: avoid; }
+        .report-header h1 { font-size: 18pt; }
+        .report-header p { font-size: 12pt; }
+        .detail-table { font-size: 9pt; }
+        .detail-table th, .detail-table td { padding: 6px 8px; }
+        .feedback-input-container { display: none !important; }
+        .feedback-print-view { display: block !important; }
+        @page {
+            size: A4 landscape;
+            margin: 0.5in;
+        }
     }
 </style>
 </head>
@@ -94,7 +210,7 @@
 <div id="report-content" class="report-container" style="display:none;"></div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ2nItJWbioX_YHFqYc50z6p2sV-BZlmwsUplvGtJSEPHs5GkLwJWaJjcfPmtIVZ8/exec"; // कृपया तुमची अचूक URL येथे टाका
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ2nItJWbioX_YHFqYc50z6p2sV-BZlmwsUplvGtJSEPHs5GkLwJWaJjcfPmtIVZ8/exec";
     const API_KEY = "AIzaSyCib9D8dkRRV7MyGDfTcCqaubl19RnCdhQ";
     const SPREADSHEET_ID = "1CW1mC206dts-42HOM81X6xVwhtwz70gjD9kyzT0Pwc8";
     
@@ -225,13 +341,26 @@
         html += createDetailTable('इतर कॉल्स', ['ग्राहक', 'लोन नंबर', 'सीएचे नाव', 'स्थिती', 'तपशील', 'अभिप्राय'], others, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.status}</td><td>${item.details || '-'}</td>${createFeedbackCell(item)}`);
         
         reportContainer.innerHTML = html;
+        // सर्व textareas चा आकार त्यांच्या मजकुरानुसार सेट करा
+        document.querySelectorAll('.feedback-cell textarea').forEach(ta => autoResize(ta));
     }
     
+    // हे फंक्शन textarea चा आकार आपोआप वाढवते
+    function autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+
     function createFeedbackCell(item) {
+        // HTML मध्ये XSS टाळण्यासाठी मजकूर एन्कोड करणे
+        const remarkText = item.fieldRemark.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         return `
-            <td class="feedback-cell no-print">
-                <input type="text" id="remark-${item.loanNo}" value="${item.fieldRemark}" placeholder="येथे अभिप्राय लिहा...">
-                <button onclick="saveRemark('${item.date}', '${item.loanNo}')">सेव्ह</button>
+            <td class="feedback-cell">
+                <div class="feedback-input-container no-print">
+                    <textarea id="remark-${item.loanNo}" oninput="autoResize(this)" placeholder="येथे अभिप्राय लिहा...">${remarkText}</textarea>
+                    <button onclick="saveRemark('${item.date}', '${item.loanNo}')">सेव्ह</button>
+                </div>
+                <div class="feedback-print-view">${remarkText}</div>
             </td>`;
     }
 
@@ -255,6 +384,11 @@
             if (result.status === "success") {
                 alert(result.message);
                 remarkInput.style.backgroundColor = '#d4edda';
+                // प्रिंटसाठीची माहितीसुद्धा अपडेट करा
+                const printView = remarkInput.closest('.feedback-cell').querySelector('.feedback-print-view');
+                if (printView) {
+                    printView.textContent = remark;
+                }
             } else { throw new Error(result.message); }
         } catch (error) {
             alert("अभिप्राय सेव्ह करताना त्रुटी: " + error.message);
@@ -266,16 +400,14 @@
     }
 
     function createDetailTable(title, headers, data, rowBuilder) {
-        headers[headers.length - 1] = `<th class="feedback-header no-print">${headers[headers.length - 1]}</th>`;
-
         let tableHtml = `<div class="report-section"><h2>${title} (${data.length})</h2>`;
         if (data.length === 0) {
             tableHtml += `<div class="empty-message">या प्रकारात कोणताही डेटा उपलब्ध नाही.</div>`;
         } else {
-            let thString = headers.slice(0, -1).map(h => `<th>${h}</th>`).join('');
-            thString += headers[headers.length - 1]; // शेवटचा हेडर वेगळ्या पद्धतीने जोडला
-
-            tableHtml += `<table class="detail-table"><thead><tr>${thString}</tr></thead><tbody>${data.map(item => `<tr>${rowBuilder(item)}</tr>`).join('')}</tbody></table>`;
+            tableHtml += `<table class="detail-table">
+                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                <tbody>${data.map(item => `<tr>${rowBuilder(item)}</tr>`).join('')}</tbody>
+            </table>`;
         }
         tableHtml += `</div>`;
         return tableHtml;
@@ -283,9 +415,13 @@
 
     function downloadPDF() {
         const element = document.getElementById('report-content');
+        const unit = document.getElementById('unitFilter').value;
+        const date = document.getElementById('reportDate').value;
+        const filename = `Calling_Report_${unit}_${date}.pdf`;
+
         html2pdf().from(element).set({
             margin: 0.5,
-            filename: `Calling_Report_${document.getElementById('unitFilter').value}_${document.getElementById('reportDate').value}.pdf`,
+            filename: filename,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
