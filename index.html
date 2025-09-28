@@ -38,7 +38,7 @@
         .filter-group label { font-size: 14px; margin-bottom: 5px; }
         .filter-group input, .filter-group select { padding: 10px; font-size: 15px; }
         .checkbox-group { display: flex; align-items: center; gap: 8px; padding-top: 25px; }
-        
+
         #customerList { max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
         .customer-item { padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background-color 0.2s; position: relative; }
         .customer-item.processed { opacity: 0.7; background-color: #f0f4c3; }
@@ -49,6 +49,14 @@
         .customer-item .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; font-size: 13px; color: #666; margin-top: 8px; }
         .last-call-info { background-color: #fffbe6; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 10px; font-size: 12px; margin-top: 8px; color: #92400e; }
         .done-indicator { position: absolute; top: 15px; right: 15px; font-size: 14px; font-weight: 600; color: var(--success-color); }
+        
+        /* नवीन 'टीम अभिप्राय' आणि 'कॉल हिस्ट्री' साठी स्टाईल */
+        .team-remark-details {
+            background: #fff9e6; border-left: 4px solid #ffca28; padding: 15px;
+            border-radius: 8px; margin-bottom: 20px;
+        }
+        .team-remark-details h3 { margin: 0 0 10px 0; font-size: 16px; color: #a16207; }
+        .team-remark-details p { margin: 0; font-size: 14px; }
 
         .previous-call-details { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--warning-color); max-height: 200px; overflow-y: auto;}
         .previous-call-details h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
@@ -89,6 +97,13 @@
         </div>
         <div class="card">
             <h2>📝 कॉलचा तपशील</h2>
+            
+            <!-- टीम अभिप्राय (Remark) साठी नवीन सेक्शन -->
+            <div id="teamRemarkContainer" class="team-remark-details hidden">
+                <h3>टीमचा अभिप्राय</h3>
+                <p id="teamRemarkContent"></p>
+            </div>
+
             <div id="previousCallContainer" class="previous-call-details hidden">
                 <h3>संपूर्ण कॉल हिस्ट्री</h3>
                 <div id="callHistoryContent"></div> <!-- हिस्ट्री इथे दिसेल -->
@@ -132,7 +147,7 @@
     // <<<<<< इथे तुमची नवीन, Deploy केलेली Google Apps Script URL टाका >>>>>>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWKncjpkO4ywuKSYfQRPemgDWfdjU2wf4Kt_haqgEUIpZJnjDhh9bGvWBAuC0RpTs/exec"; 
 
-        let allCustomers = [];
+    let allCustomers = [];
 
     window.onload = async function() {
         try {
@@ -205,13 +220,15 @@
                 </div>`;
             }
 
+            // *** बदल इथे केला आहे: 'युनिट'चे नाव जोडले आहे ***
             return `
-            <div class="customer-item ${processedClass}" data-loan-no="${c.loanNo}" onclick='selectCustomer(${JSON.stringify(c)})'>
+            <div class="customer-item ${processedClass}" data-loan-no="${c.loanNo}" onclick='selectCustomer(${JSON.stringify(c).replace(/'/g, "\\'")})'>
                 <div class="name">${c.name} <span class="done-indicator ${c.calledToday ? '' : 'hidden'}">✔ कॉल झाला</span></div>
                 <div class="details-grid">
                     <span><strong>लोन नं:</strong> ${c.loanNo}</span>
                     <span><strong>सी ऐ:</strong> ${c.staffName || 'N/A'}</span>
                     <span><strong>गांव:</strong> ${c.village || 'N/A'}</span>
+                    <span><strong>युनिट:</strong> ${c.unitName || 'N/A'}</span>
                     <span><strong>मोबाईल:</strong> ${c.mobile || 'N/A'}</span>
                     <span><strong>ओडी:</strong> ${c.odDays} दिवस</span>
                     <span><strong>रक्कम:</strong> ₹${parseInt(c.odAmount || 0).toLocaleString('en-IN')}</span>
@@ -229,6 +246,16 @@
         document.getElementById('selectedCustomerName').value = customerData.name;
         document.getElementById('selectedLoanNo').value = customerData.loanNo;
         
+        // *** बदल इथे केला आहे: 'टीमचा अभिप्राय' दाखवण्यासाठी ***
+        const remarkContainer = document.getElementById('teamRemarkContainer');
+        const remarkContent = document.getElementById('teamRemarkContent');
+        if (customerData.teamRemark) {
+            remarkContent.textContent = customerData.teamRemark;
+            remarkContainer.classList.remove('hidden');
+        } else {
+            remarkContainer.classList.add('hidden');
+        }
+
         const historyContainer = document.getElementById('previousCallContainer');
         const historyContent = document.getElementById('callHistoryContent');
         
@@ -281,7 +308,6 @@
             
             const customerIndex = allCustomers.findIndex(c => String(c.loanNo) === String(loanNo));
             if (customerIndex > -1) {
-                // नवीन कॉलची माहिती customer च्या callHistory मध्ये जोडा
                 const newCallEntry = {
                     callDate: new Date().toISOString(),
                     status: formData.status,
@@ -297,14 +323,10 @@
             
             applyFilters();
             
-            // निवडलेल्या ग्राहकाची माहिती रिफ्रेश करा
             const updatedCustomer = allCustomers[customerIndex];
             if(updatedCustomer) selectCustomer(updatedCustomer);
 
             document.getElementById('callLogForm').reset();
-            // निवडलेला ग्राहक तसाच ठेवा, फक्त फॉर्म रिकामा करा
-            // document.getElementById('selectedCustomerName').value = '';
-            // document.getElementById('selectedLoanNo').value = '';
             toggleConditionalFields();
 
         } catch (error) {
@@ -324,8 +346,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
