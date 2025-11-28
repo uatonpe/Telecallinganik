@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>दैनिक कॉलिंग रिपोर्ट</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
     :root { 
@@ -59,8 +58,11 @@
         font-weight: 500;
     }
     .filters-container button:hover { background-color: #00487d; }
-    #downloadPdfBtn { background-color: var(--danger-color); border-color: var(--danger-color); }
     
+    /* Print Button Style */
+    #printBtn { background-color: var(--danger-color); border-color: var(--danger-color); display: none; }
+    #printBtn:hover { background-color: #c82333; }
+
     /* Report Container */
     #loader { text-align: center; padding: 50px; font-size: 18px; color: var(--secondary-text); }
     .report-container { 
@@ -90,41 +92,32 @@
         width: 100%; 
         border-collapse: collapse; 
         font-size: 14px; 
-        table-layout: fixed; /* Fixed layout helps with wrapping */
     }
     .detail-table th, .detail-table td { 
         padding: 12px 15px; 
         text-align: left; 
-        vertical-align: top; /* Align top for better readability */
+        vertical-align: top;
         border-bottom: 1px solid var(--border-color);
-        word-wrap: break-word; /* Important: breaks long words */
-        overflow-wrap: break-word;
-        white-space: pre-wrap; /* Preserves formatting */
+        word-wrap: break-word; 
     }
-    .detail-table th { width: 15%; } /* Adjust widths as needed */
-    .detail-table th:last-child { width: 30%; } /* Remark column wider */
+    .detail-table th { background-color: #f2f2f2; font-weight: 600; }
     
-    .detail-table thead th { 
-        background-color: #f2f2f2; 
-        font-weight: 600; 
+    /* Feedback Section - Screen View */
+    .feedback-cell { min-width: 250px; }
+    .feedback-input-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
     }
-    
-    /* Feedback Section */
-    .feedback-cell textarea { 
-        width: 95%;
+    .feedback-input-container textarea { 
+        width: 100%;
         padding: 8px; 
         border: 1px solid #ccc; 
         border-radius: 4px;
         font-family: inherit;
         font-size: 14px;
-        resize: none;
-        overflow: hidden;
+        resize: vertical;
         min-height: 38px;
-    }
-    .feedback-input-container {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
     }
     .feedback-input-container button { 
         padding: 8px 15px; 
@@ -134,50 +127,51 @@
         border-radius: 4px;
         cursor: pointer;
         height: 38px;
+        white-space: nowrap;
     }
     
-    /* PRINT VIEW STYLES - हे सर्वात महत्त्वाचे आहे */
+    /* Feedback Section - Print View (Default Hidden) */
     .feedback-print-view {
-        display: none; /* Screen वर लपवा */
-        white-space: pre-wrap;
-        word-wrap: break-word;
+        display: none;
+        white-space: pre-wrap; /* ओळी जशाच्या तशा ठेवण्यासाठी */
+        word-break: break-word; /* लांब शब्द तोडण्यासाठी */
         font-size: 12px;
+        line-height: 1.5;
         color: #000;
-        line-height: 1.4;
+        padding-top: 5px;
     }
 
-    /* PDF Generation Mode Class */
-    body.pdf-mode .no-print,
-    body.pdf-mode .filters-container,
-    body.pdf-mode .feedback-input-container {
-        display: none !important;
-    }
-    
-    body.pdf-mode .feedback-print-view {
-        display: block !important;
-    }
-
-    body.pdf-mode .report-container {
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
-    body.pdf-mode .report-section {
-        box-shadow: none;
-        border: 1px solid #eee;
-        page-break-inside: avoid;
-    }
-
-    /* Browser Print (Ctrl+P) Styles */
+    /* =========================================
+       PRINT SPECIFIC STYLES (महत्त्वाचे)
+       ========================================= */
     @media print {
-        .no-print, .filters-container, .feedback-input-container { display: none !important; }
-        .feedback-print-view { display: block !important; }
-        body { background-color: #fff; font-size: 10pt; }
-        .report-section { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
-        .detail-table th, .detail-table td { padding: 5px; }
-        @page { size: A4 landscape; margin: 0.5cm; }
+        /* प्रिंट करताना हे लपवा */
+        .no-print, 
+        .filters-container, 
+        .feedback-input-container, /* Input box आणि Save button लपवा */
+        button { 
+            display: none !important; 
+        }
+
+        /* प्रिंट करताना हे दाखवा */
+        .feedback-print-view { 
+            display: block !important; /* फक्त मजकूर दाखवा */
+        }
+
+        /* पेज लेआउट */
+        body { background-color: #fff; font-size: 10pt; -webkit-print-color-adjust: exact; }
+        .report-container { max-width: 100%; margin: 0; padding: 0; }
+        .report-section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; }
+        .detail-table th, .detail-table td { padding: 8px 5px; border: 1px solid #ddd; }
+        
+        /* Table Headers प्रत्येक पेजवर दिसण्यासाठी */
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; }
+
+        @page { 
+            size: A4 landscape; /* आडवे पेज */
+            margin: 1cm; 
+        }
     }
 </style>
 </head>
@@ -189,7 +183,8 @@
     <label for="unitFilter">युनिट:</label>
     <select id="unitFilter"><option value="All">सर्व युनिट्स</option></select>
     <button onclick="generateReport()">रिपोर्ट तयार करा</button>
-    <button id="downloadPdfBtn" style="display:none;" onclick="downloadPDF()">PDF डाउनलोड करा</button>
+    <!-- नवीन प्रिंट बटण -->
+    <button id="printBtn" onclick="printReport()">🖨️ प्रिंट करा / PDF सेव्ह करा</button>
 </div>
 
 <div id="loader">डेटा लोड होत आहे, कृपया थांबा...</div>
@@ -207,8 +202,8 @@
         fetchInitialData();
     });
 
-    // ... (fetchInitialData function तसाच राहील) ...
     async function fetchInitialData() {
+        // ... (हा भाग पूर्वीसारखाच आहे - डेटा फेचिंग) ...
         document.getElementById('loader').innerText = 'डेटा लोड होत आहे, कृपया थांबा...';
         try {
             const ranges = [`CallLogs!A:I`, `MasterData!A:K`, `Updates!A:C`];
@@ -310,13 +305,13 @@
         if (reportData.length === 0) {
             reportContainer.innerHTML = `<div class="empty-message">दिनांक ${selectedDate} रोजी '${selectedUnit}' साठी कोणताही डेटा उपलब्ध नाही.</div>`;
             reportContainer.style.display = 'block';
-            document.getElementById('downloadPdfBtn').style.display = 'none';
+            document.getElementById('printBtn').style.display = 'none';
             return;
         }
         
         document.getElementById('loader').style.display = 'none';
         reportContainer.style.display = 'block';
-        document.getElementById('downloadPdfBtn').style.display = 'inline-block';
+        document.getElementById('printBtn').style.display = 'inline-block';
         
         const ptp = reportData.filter(r => r.status.includes('पेमेंटची तारीख'));
         const paidToStaff = reportData.filter(r => r.status.includes('हप्ता'));
@@ -326,28 +321,28 @@
         
         let html = `<div class="report-header"><h1>दैनिक कॉलिंग परफॉर्मन्स रिपोर्ट</h1><p><strong>युनिट:</strong> ${selectedUnit} | <strong>तारीख:</strong> ${new Date(selectedDate).toLocaleDateString('mr-IN')}</p></div>`;
         
-        // Table columns changed to include Remarks properly
         html += createDetailTable('पेमेंटची तारीख निश्चित (PTP)', ['ग्राहक', 'लोन नंबर', 'सीए', 'पेमेंट तारीख', 'अभिप्राय (Remark)'], ptp, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.paymentDate || '-'}</td>${createFeedbackCell(item)}`);
         html += createDetailTable('हप्ता स्टाफकडे भरला', ['ग्राहक', 'लोन नंबर', 'सीए', 'तपशील', 'अभिप्राय (Remark)'], paidToStaff, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.amountPaidTo || '-'}</td>${createFeedbackCell(item)}`);
         html += createDetailTable('अनुत्पादक कॉल्स', ['ग्राहक', 'लोन नंबर', 'सीए', 'स्थिती', 'अभिप्राय (Remark)'], [...notPicked, ...wrongNo], (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.status}</td>${createFeedbackCell(item)}`);
         html += createDetailTable('इतर कॉल्स', ['ग्राहक', 'लोन नंबर', 'सीए', 'स्थिती', 'तपशील', 'अभिप्राय (Remark)'], others, (item) => `<td>${item.customerName}</td><td>${item.loanNo}</td><td>${item.caName}</td><td>${item.status}</td><td>${item.details || '-'}</td>${createFeedbackCell(item)}`);
         
         reportContainer.innerHTML = html;
-        document.querySelectorAll('.feedback-cell textarea').forEach(ta => autoResize(ta));
-    }
-    
-    function autoResize(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = (textarea.scrollHeight) + 'px';
+        // Textarea साइज ऍडजस्ट करा
+        document.querySelectorAll('.feedback-input-container textarea').forEach(ta => {
+            ta.style.height = 'auto';
+            ta.style.height = (ta.scrollHeight) + 'px';
+        });
     }
 
-    // !! महत्वाचा बदल: टाइप करतानाच प्रिंट व्ह्यू अपडेट करणे !!
+    // टाइप करतानाच प्रिंट व्ह्यू अपडेट करणे
     function syncRemark(textarea) {
-        const printView = textarea.parentElement.nextElementSibling;
+        const printView = textarea.closest('.feedback-cell').querySelector('.feedback-print-view');
         if(printView) {
             printView.textContent = textarea.value;
         }
-        autoResize(textarea);
+        // ऑटो हाईट
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
     }
 
     function createFeedbackCell(item) {
@@ -355,10 +350,10 @@
         return `
             <td class="feedback-cell">
                 <div class="feedback-input-container">
-                    <textarea id="remark-${item.loanNo}" oninput="syncRemark(this)" placeholder="येथे अभिप्राय लिहा...">${remarkText}</textarea>
+                    <textarea id="remark-${item.loanNo}" oninput="syncRemark(this)" placeholder="अभिप्राय...">${remarkText}</textarea>
                     <button onclick="saveRemark('${item.date}', '${item.loanNo}')">सेव्ह</button>
                 </div>
-                <!-- हा div फक्त प्रिंट आणि PDF साठी आहे, तो Textarea मधील मजकूर दाखवेल -->
+                <!-- प्रिंटसाठी लपलेला Div - हा फक्त प्रिंटमध्ये दिसेल -->
                 <div class="feedback-print-view">${remarkText}</div>
             </td>`;
     }
@@ -367,9 +362,10 @@
         const remarkInput = document.getElementById(`remark-${loanNumber}`);
         const remark = remarkInput.value.trim();
         const button = remarkInput.nextElementSibling;
+        
         if (!remark) { alert("कृपया अभिप्राय लिहा."); return; }
 
-        button.textContent = 'सेव्ह...';
+        button.textContent = '...';
         button.disabled = true;
 
         // मॅन्युअल सिंक (Safety)
@@ -384,11 +380,11 @@
             });
             const result = await response.json();
             if (result.status === "success") {
-                alert(result.message);
+                // alert(result.message); // वारंवार अलर्ट नको असल्यास हे कमेंट करा
                 remarkInput.style.backgroundColor = '#d4edda';
             } else { throw new Error(result.message); }
         } catch (error) {
-            alert("अभिप्राय सेव्ह करताना त्रुटी: " + error.message);
+            alert("त्रुटी: " + error.message);
             remarkInput.style.backgroundColor = '#f8d7da';
         } finally {
             button.textContent = 'सेव्ह';
@@ -397,8 +393,7 @@
     }
 
     function createDetailTable(title, headers, data, rowBuilder) {
-        if (data.length === 0) return ''; // डेटा नसेल तर टेबल दाखवू नका (Clean Report)
-        
+        if (data.length === 0) return '';
         return `<div class="report-section">
             <h2>${title} (${data.length})</h2>
             <table class="detail-table">
@@ -408,34 +403,13 @@
         </div>`;
     }
 
-    // !! महत्वाचा बदल: PDF काढताना Textarea लपवून फक्त मजकूर दाखवणे !!
-    function downloadPDF() {
-        const element = document.getElementById('report-content');
-        const unit = document.getElementById('unitFilter').value;
-        const date = document.getElementById('reportDate').value;
-        const filename = `Calling_Report_${unit}_${date}.pdf`;
-
-        // 1. PDF मोड ऑन करा (Textarea लपवा, Text Div दाखवा)
-        document.body.classList.add('pdf-mode');
-
-        // 2. खात्री करा की सर्व बॉक्समधील मजकूर प्रिंट व्ह्यूमध्ये कॉपी झाला आहे
-        document.querySelectorAll('.feedback-cell textarea').forEach(ta => {
-            const printView = ta.parentElement.nextElementSibling;
-            if(printView) printView.textContent = ta.value;
-        });
-
-        const opt = {
-            margin:       0.3,
-            filename:     filename,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-        };
-
-        // 3. PDF जनरेट करा आणि मग PDF मोड बंद करा
-        html2pdf().set(opt).from(element).save().then(() => {
-            document.body.classList.remove('pdf-mode');
-        });
+    // प्रिंट फंक्शन - ब्राउझर प्रिंट डायलॉग उघडेल
+    function printReport() {
+        // प्रिंट करण्याआधी खात्री करा की सर्व Textarea मधील मजकूर Print Div मध्ये कॉपी झाला आहे
+        document.querySelectorAll('textarea').forEach(ta => syncRemark(ta));
+        
+        // ब्राउझर प्रिंट कमांड
+        window.print();
     }
 </script>
 </body>
